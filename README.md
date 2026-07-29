@@ -109,8 +109,12 @@ ec-charge-hack/
 │       ├── red.ico                    # Charging inhibited (at threshold)
 │       └── gray.ico                   # Discharging (unplugged)
 │
-├── arch/                              # ─── Linux/Arch implementation ───
-│   └── (add your code here)
+├── arch/                              # ─── Arch Linux implementation ───
+│   ├── battery-charge-limiter         # Python daemon (acpi_call)
+│   ├── battery-charge-limiter.service # systemd unit file
+│   ├── setup.sh                       # One-click installer
+│   ├── GUIDE.md                       # Step-by-step tutorial + troubleshooting
+│   └── detect-ec.sh                   # EC register scanner (Linux)
 │
 └── docs/                              # ─── Documentation ───
     ├── ec-register-discovery.md       # How to find registers on any laptop
@@ -119,35 +123,80 @@ ec-charge-hack/
         └── 02-tray-icons.png
 ```
 
-### Where Files Go On Your System
-
-| File (in repo) | Copy to | Why |
-|----------------|---------|-----|
-| `windows/daemon.ps1` | `C:\EC-Tool\daemon.ps1` | Scheduled task runs from here |
-| `windows/icons/*.ico` | `C:\EC-Tool\` | Daemon loads icons from same folder |
-| `—` | `C:\EC-Tool\EC-Access-Tool.exe` | Download separately, needed for EC access |
-| `—` | `C:\EC-Tool\WinRing0x64.sys` | Download separately, kernel driver |
-| `windows/setup.ps1` | Run from anywhere | Handles all of the above automatically |
-
-### Configuration
-
-Edit these variables at the top of `daemon.ps1`:
-
-```powershell
-$ecTool     = "C:\EC-Tool\EC-Access-Tool.exe"
-$regAddr    = "76"        # EC register (hex, without 0x)
-$autoVal    = "00"        # AUTO — stock EC behavior (charges, LED follows system)
-$inhibitVal = "45"        # INHIBIT — stops charge, RED LED, AC online
-$stopAt     = 80           # Target charge limit (%)
-```
-
 ---
 
 ## Linux (Arch) Setup
 
-> *(Your implementation goes here — drop your code in the [arch/](arch/) folder)*
+Full step-by-step guide → **[arch/GUIDE.md](arch/GUIDE.md)**
 
-Same concept, different platform. Uses `/dev/port`, `ec_sys`, or `acpi_call` instead of WinRing0.
+**Quick start:**
+
+```bash
+cd arch/
+sudo bash setup.sh
+```
+
+### What It Does
+
+| Component | Description |
+|-----------|-------------|
+| `battery-charge-limiter` | Python daemon — polls battery every 60s, calls ACPI methods |
+| `battery-charge-limiter.service` | systemd service — auto-start on boot |
+| `setup.sh` | Installs acpi_call-dkms, copies files, enables service |
+| `detect-ec.sh` | EC register discovery via ec_sys + acpi_call |
+| `arch/GUIDE.md` | Everything explained step by step |
+
+### How It Works on Linux
+
+| Aspect | Detail |
+|--------|--------|
+| EC access method | `acpi_call` — writes ACPI WMI methods to `/proc/acpi/call` |
+| INHIBIT | `\_SB.WMID.SBCO BUFQ{0x00, 0x05, 0x00, 0x00}` |
+| AUTO | `\_SB.WMID.SBCC BUFQ{0x00, 0x00, 0x00, 0x00}` |
+| Poll interval | 60 seconds (ACPI state is stable — no EC register reset) |
+| Thresholds | Stop at **80%**, resume at **75%** (configurable) |
+| Headless | No tray icon — runs as systemd service, logs to journalctl |
+
+### Helper Aliases
+
+After setup, these commands are available everywhere:
+
+```bash
+bat-status    # Show battery %, status, power
+bat-inhibit   # Manually stop charging
+bat-auto      # Manually resume charging
+```
+
+### Manual Control
+
+```bash
+# Check daemon logs
+journalctl -u battery-charge-limiter -f
+
+# Stop protection temporarily
+sudo systemctl stop battery-charge-limiter
+
+# Permanently disable
+sudo systemctl disable --now battery-charge-limiter
+```
+
+---
+
+### Configuration
+
+Edit the top of `/usr/local/bin/battery-charge-limiter`:
+
+```python
+START_THRESHOLD = 75   # Resume charging at this %
+STOP_THRESHOLD  = 80   # Stop charging at this %
+POLL_INTERVAL   = 60   # Check every N seconds
+```
+
+Restart after changing:
+
+```bash
+sudo systemctl restart battery-charge-limiter
+```
 
 ---
 
@@ -202,9 +251,13 @@ Every laptop manufacturer (and sometimes each model) uses a different EC registe
 
 ## Screenshots
 
-| EC Register Proof | Tray - Grey (idle) | Tray - Green (charging) | Tray - Red (inhibited) |
-|-------------------|--------------------|------------------------|----------------------|
-| ![Terminal: EC read 0xC5](docs/screenshots/01-terminal-proof.png) | ![Grey tray idle](docs/screenshots/02-tray-icons.png) | ![Green tray](docs/screenshots/03-tray-green.png) | ![Red tray](docs/screenshots/04-tray-red.png) |
+| Windows — EC Register Proof | Arch — Daemon Running |
+|-----------------------------|----------------------|
+| ![Terminal: EC read 0xC5](docs/screenshots/01-terminal-proof.png) | ![Arch: terminal](docs/screenshots/arch-terminal-proof.png) |
+
+| Windows — Tray States | Arch — systemctl Logs |
+|----------------------|-----------------------|
+| ![Tray icons](docs/screenshots/02-tray-icons.png) | ![Arch: daemon](docs/screenshots/arch-daemon-active.png) |
 
 ---
 

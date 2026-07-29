@@ -1,0 +1,12 @@
+[Unit]
+Description=Battery Charge Limiter (80% cap via ACPI)
+After=multi-user.target
+
+[Service]
+Type=simple
+ExecStart=/usr/local/bin/battery-charge-limiter
+Restart=on-failure
+RestartSec=10
+
+[Install]
+WantedBy=multi-user.target

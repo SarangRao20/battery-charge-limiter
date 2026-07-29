@@ -111,6 +111,11 @@ ec-charge-hack/
 │       ├── red.ico           # Inhibited (≥80%)
 │       └── gray.ico          # Discharging
 ├── arch/                     # Linux implementation
+│   ├── battery-charge-limiter         # Python daemon (acpi_call)
+│   ├── battery-charge-limiter.service # systemd unit
+│   ├── setup.sh                       # One-click installer
+│   ├── GUIDE.md                       # Step-by-step tutorial
+│   └── detect-ec.sh                   # EC register scanner
 ├── docs/
 │   ├── ec-register-discovery.md
 │   └── screenshots/
@@ -119,6 +124,25 @@ ec-charge-hack/
 │       ├── 03-tray-green.png
 │       └── 04-tray-red.png
 ```
+
+## Linux Daemon (Arch)
+
+Same concept as Windows — different EC access method.
+
+| Aspect | Linux |
+|--------|-------|
+| EC access | `acpi_call` kernel module → `/proc/acpi/call` |
+| INHIBIT method | `\_SB.WMID.SBCO BUFQ{0x00, 0x05, 0x00, 0x00}` |
+| AUTO method | `\_SB.WMID.SBCC BUFQ{0x00, 0x00, 0x00, 0x00}` |
+| Poll interval | 60 seconds (ACPI state is stable) |
+| Visual feedback | `journalctl -u battery-charge-limiter -f` |
+| Auto-start | systemd service (enabled by setup.sh) |
+
+### Why 60s Instead of 3s?
+
+On Windows, the EC register (0x76) gets reset by firmware every few seconds — hence the 3-second re-write loop.
+
+On Linux, the ACPI WMI method (`SBCO`/`SBCC`) sets a persistent state in the EC that the firmware doesn't override. So 60-second polling is sufficient — the daemon is just checking if conditions changed, not fighting a reset.
 
 ## Why This Approach Works
 
