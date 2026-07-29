@@ -3,9 +3,9 @@
 > **Stop overcharging your laptop battery at the hardware/EC level.**
 > Supports Windows and Arch Linux.
 
-| Windows EC Proof | Arch Daemon Running |
+| Windows EC Proof | Arch — bat-status |
 |---|---|
-| ![EC read 0xC5](docs/screenshots/01-terminal-proof.png) | ![Arch terminal](docs/screenshots/arch-terminal-proof.png) |
+| ![EC read 0xC5](docs/screenshots/01-terminal-proof.png) | ![Arch bat-status](docs/screenshots/arch-bat-status.png) |
 
 ---
 
@@ -117,9 +117,13 @@ WinRing0 requires Secure Boot disabled or signed driver. RW-Everything's RwDrv.s
 |---|---|
 | ![EC read](docs/screenshots/01-terminal-proof.png) | ![Tray icons](docs/screenshots/02-tray-icons.png) |
 
-| Arch — Daemon Running | Arch — systemctl Logs |
+| Arch — bat-status | Arch — bat-inhibit |
 |---|---|
-| ![Arch terminal](docs/screenshots/arch-terminal-proof.png) | ![Arch daemon](docs/screenshots/arch-daemon-active.png) |
+| ![Arch bat-status](docs/screenshots/arch-bat-status.png) | ![Arch bat-inhibit](docs/screenshots/arch-bat-inhibit.png) |
+
+| Arch — daemon active | Arch — journalctl logs |
+|---|---|
+| ![Arch daemon](docs/screenshots/arch-daemon-active.png) | ![Arch journalctl](docs/screenshots/arch-journalctl.png) |
 
 ---
 
