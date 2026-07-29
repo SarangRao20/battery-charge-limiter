@@ -29,41 +29,61 @@ If your laptop is from HP, Lenovo, Dell, or ASUS — there's a good chance it ha
 
 ## Step 1: Download EC-Access-Tool
 
-This is the tool that talks to your Embedded Controller through the WinRing0 driver.
+This is the tool that talks to your Embedded Controller. It supports **two drivers**:
+
+- **WinRing0x64.sys** — works on most systems (may need Secure Boot disabled)
+- **RwDrv.sys** — from RW-Everything, **Microsoft-signed** (works with Secure Boot ON)
 
 Download from here:  
-👉 [https://github.com/JamesH65/EC-Access-Tool/releases](https://github.com/JamesH65/EC-Access-Tool/releases)
+👉 [https://github.com/shubhampaul/EC-Access-Tool](https://github.com/shubhampaul/EC-Access-Tool)
 
-Grab `EC-Access-Tool.exe` and `WinRing0x64.sys`. Put them somewhere simple like `C:\EC-Tool\`.
+Grab `EC-Access-Tool.exe` and the driver of your choice. Put them in `C:\EC-Tool\`.
 
 Or just run the included `setup.ps1` which does this automatically.
 
 ---
 
-## Step 2: Install WinRing0 Driver
+## Step 2: Install the Driver
 
-Open **PowerShell as Administrator** and run:
+The tool supports two drivers. Pick one:
+
+### Option A: WinRing0 (simpler, may need Secure Boot disabled)
 
 ```powershell
 C:\EC-Tool\EC-Access-Tool.exe -install
 ```
 
-You should see something like:
-
+Expected output:
 ```
 WinRing0 Install ... SUCCESS
 WinRing0 Start ... SUCCESS
 ```
 
 If it fails:
-- **Secure Boot** is probably enabled → disable it in BIOS
+- **Secure Boot** is enabled → try Option B (RwDrv) instead, or disable Secure Boot in BIOS
 - **Windows Defender** is blocking it → add exclusion for `C:\EC-Tool\`
-- **Run as Admin** — duh, do it
 
-Verify it's running:
+### Option B: RwDrv (Microsoft-signed, works with Secure Boot ON)
+
+Copy `RwDrv.sys` from a RW-Everything installation (`C:\Windows\System32\drivers\RwDrv.sys`) to `C:\EC-Tool\`, or [download RW-Everything](https://www.rweverything.com/) and extract it.
+
+Then start the driver service:
+
+```powershell
+sc create RwDrv type= kernel binPath= "C:\EC-Tool\RwDrv.sys"
+sc start RwDrv
+```
+
+### Verify
 
 ```powershell
 C:\EC-Tool\EC-Access-Tool.exe -winring0 -r 76
+```
+
+Or with RwDrv:
+
+```powershell
+C:\EC-Tool\EC-Access-Tool.exe -rwdrv -r 76
 ```
 
 If you get a hex value like `0x80` or `0x00`, you're good.

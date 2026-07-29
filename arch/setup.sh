@@ -23,6 +23,20 @@ fi
 log "=== Battery Charge Limiter — Arch Installer ==="
 echo ""
 
+# Create default config before anything else
+CONFIG_FILE="/etc/battery-charge-limiter.conf"
+if [[ ! -f "$CONFIG_FILE" ]]; then
+    cat > "$CONFIG_FILE" << 'CONF'
+# Battery Charge Limiter Configuration
+# Uncomment and change values as needed:
+
+START_THRESHOLD=75
+STOP_THRESHOLD=80
+POLL_INTERVAL=60
+CONF
+    ok "Default config created at $CONFIG_FILE"
+fi
+
 # 1. Install acpi_call-dkms
 log "[1/5] Installing acpi_call-dkms..."
 if pacman -Qi acpi_call-dkms &>/dev/null; then
@@ -94,6 +108,10 @@ echo ""
 echo "  Daemon manages automatically:"
 echo "    systemctl status battery-charge-limiter"
 echo "    journalctl -u battery-charge-limiter -f"
+echo ""
+echo "  Config: $CONFIG_FILE"
+echo "    Edit thresholds: sudo nano $CONFIG_FILE"
+echo "    Restart after edit: sudo systemctl restart battery-charge-limiter"
 echo ""
 echo "  Stop protection:"
 echo "    sudo systemctl stop battery-charge-limiter"

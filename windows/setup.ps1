@@ -13,8 +13,8 @@ $dest       = "C:\EC-Tool"
 $daemonPath = "$PSScriptRoot\daemon.ps1"
 $iconSrc    = "$PSScriptRoot\icons"
 $iconDest   = "$dest"
-$ecUrl      = "https://github.com/JamesH65/EC-Access-Tool/raw/master/bin/Release/EC-Access-Tool.exe"
-$driverUrl  = "https://github.com/JamesH65/EC-Access-Tool/raw/master/WinRing0/WinRing0x64.sys"
+$ecUrl      = "https://github.com/shubhampaul/EC-Access-Tool/raw/main/EC-Access-Tool.exe"
+$driverUrl  = "https://github.com/shubhampaul/EC-Access-Tool/raw/main/WinRing0x64.sys"
 
 Write-Host "=== Battery Charge Limiter Setup ===" -ForegroundColor Cyan
 
@@ -32,7 +32,7 @@ if ($drv -and $drv.Status -eq "Running") {
         Write-Host " OK" -ForegroundColor Green
     } catch {
         Write-Host " FAILED (manual download needed)" -ForegroundColor Red
-        Write-Host "Download from: https://github.com/JamesH65/EC-Access-Tool/releases"
+        Write-Host "Download from: https://github.com/shubhampaul/EC-Access-Tool"
         exit 1
     }
     & "$env:TEMP\EC-Access-Tool.exe" -install

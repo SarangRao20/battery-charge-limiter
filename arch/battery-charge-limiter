@@ -7,13 +7,36 @@ import sys
 
 ACPI_CALL_PATH = "/proc/acpi/call"
 BATTERY_PATH = "/sys/class/power_supply/BAT0"
+CONFIG_PATH = "/etc/battery-charge-limiter.conf"
 
-START_THRESHOLD = 75
-STOP_THRESHOLD = 80
-POLL_INTERVAL = 60
+DEFAULTS = {
+    "START_THRESHOLD": 75,
+    "STOP_THRESHOLD": 80,
+    "POLL_INTERVAL": 60,
+}
 
 WMI_INHIBIT = r"\_SB.WMID.SBCO BUFQ{0x00, 0x05, 0x00, 0x00}"
 WMI_AUTO = r"\_SB.WMID.SBCC BUFQ{0x00, 0x00, 0x00, 0x00}"
+
+
+def load_config():
+    config = dict(DEFAULTS)
+    if not os.path.exists(CONFIG_PATH):
+        return config
+    try:
+        with open(CONFIG_PATH) as f:
+            for line in f:
+                line = line.strip()
+                if not line or line.startswith("#") or "=" not in line:
+                    continue
+                key, val = line.split("=", 1)
+                key = key.strip()
+                val = val.strip()
+                if key in config:
+                    config[key] = int(val)
+    except Exception as e:
+        print(f"Warning: failed to parse {CONFIG_PATH}: {e}", file=sys.stderr)
+    return config
 
 
 def read_battery_pct():
@@ -60,6 +83,11 @@ def main():
     if not os.path.exists(ACPI_CALL_PATH):
         print("acpi_call module not loaded. Run: modprobe acpi_call", file=sys.stderr)
         sys.exit(1)
+
+    cfg = load_config()
+    START_THRESHOLD = cfg["START_THRESHOLD"]
+    STOP_THRESHOLD = cfg["STOP_THRESHOLD"]
+    POLL_INTERVAL = cfg["POLL_INTERVAL"]
 
     print(f"Battery charge limiter started: {START_THRESHOLD}%-{STOP_THRESHOLD}%", flush=True)
     inhibited = False
