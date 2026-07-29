@@ -3,7 +3,9 @@
 > **Stop overcharging your laptop battery at the hardware/EC level.**
 > Supports Windows (WinRing0) and Linux (Arch) with system tray daemon.
 
-![Tray icons showing green/red/gray states](docs/screenshots/02-tray-icons.png)
+| Terminal Proof | Tray Inhibited |
+|---|---|
+| ![EC read 0xC5](docs/screenshots/01-terminal-proof.png) | ![Red tray](docs/screenshots/04-tray-red.png) |
 
 ## The Problem
 
@@ -200,9 +202,9 @@ Every laptop manufacturer (and sometimes each model) uses a different EC registe
 
 ## Screenshots
 
-| EC Register Proof | Tray Icons | Green Tray |
-|-------------------|------------|------------|
-| ![Terminal: EC read 0xC5](docs/screenshots/01-terminal-proof.png) | ![Tray green/red/gray](docs/screenshots/02-tray-icons.png) | ![Green tray icon charging](docs/screenshots/03-tray-green.png) |
+| EC Register Proof | Tray - Grey (idle) | Tray - Green (charging) | Tray - Red (inhibited) |
+|-------------------|--------------------|------------------------|----------------------|
+| ![Terminal: EC read 0xC5](docs/screenshots/01-terminal-proof.png) | ![Grey tray idle](docs/screenshots/02-tray-icons.png) | ![Green tray](docs/screenshots/03-tray-green.png) | ![Red tray](docs/screenshots/04-tray-red.png) |
 
 ---
 
