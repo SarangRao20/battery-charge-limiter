@@ -3,9 +3,9 @@
 > **Stop overcharging your laptop battery at the hardware/EC level.**
 > Supports Windows and Arch Linux.
 
-| Windows EC Proof | Arch — bat-status |
+| Windows EC Proof | Arch — Overview |
 |---|---|
-| ![EC read 0xC5](docs/screenshots/01-terminal-proof.png) | ![Arch bat-status](docs/screenshots/arch-bat-status.png) |
+| ![EC read 0xC5](docs/screenshots/01-terminal-proof.png) | ![Arch overview](docs/screenshots/arch-ec-charge-hack.png) |
 
 ---
 
@@ -117,13 +117,13 @@ WinRing0 requires Secure Boot disabled or signed driver. RW-Everything's RwDrv.s
 |---|---|
 | ![EC read](docs/screenshots/01-terminal-proof.png) | ![Tray icons](docs/screenshots/02-tray-icons.png) |
 
-| Arch — bat-status | Arch — bat-inhibit |
+| Arch — bat-auto + bat-status | Arch — bat-status + bat-inhibit |
 |---|---|
-| ![Arch bat-status](docs/screenshots/arch-bat-status.png) | ![Arch bat-inhibit](docs/screenshots/arch-bat-inhibit.png) |
+| ![Arch bat-auto-status](docs/screenshots/arch-bat-auto-status.png) | ![Arch bat-status-inhibit](docs/screenshots/arch-bat-status-inhibit.png) |
 
-| Arch — daemon active | Arch — journalctl logs |
+| Arch — systemctl status | Arch — journalctl logs |
 |---|---|
-| ![Arch daemon](docs/screenshots/arch-daemon-active.png) | ![Arch journalctl](docs/screenshots/arch-journalctl.png) |
+| ![Arch systemctl](docs/screenshots/arch-systemctl-status.png) | ![Arch journalctl](docs/screenshots/arch-journalctl.png) |
 
 ---
 
