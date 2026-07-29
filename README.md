@@ -3,9 +3,9 @@
 > **Stop overcharging your laptop battery at the hardware/EC level.**
 > Supports Windows and Arch Linux.
 
-| Windows EC Proof | Arch — Overview |
-|---|---|
-| ![EC read 0xC5](docs/screenshots/01-terminal-proof.png) | ![Arch overview](docs/screenshots/arch-ec-charge-hack.png) |
+| Cross-platform proof (Windows EC readback + Linux daemon) |
+|---|
+| ![Cross-platform proof](docs/screenshots/cross-platform-proof.png) |
 
 ---
 
@@ -112,17 +112,13 @@ WinRing0 requires Secure Boot disabled or signed driver. RW-Everything's RwDrv.s
 
 ## Screenshots
 
-| Windows — EC Register | Windows — Tray States |
-|---|---|
-| ![EC read](docs/screenshots/01-terminal-proof.png) | ![Tray icons](docs/screenshots/02-tray-icons.png) |
+| Cross-platform proof (Windows + Arch) |
+|---|
+| ![Windows EC proof + Linux daemon](docs/screenshots/cross-platform-proof.png) |
 
-| Arch — bat-auto + bat-status | Arch — bat-status + bat-inhibit |
+| Windows — Tray States | Arch — Daemon Logs |
 |---|---|
-| ![Arch bat-auto-status](docs/screenshots/arch-bat-auto-status.png) | ![Arch bat-status-inhibit](docs/screenshots/arch-bat-status-inhibit.png) |
-
-| Arch — systemctl status | Arch — journalctl logs |
-|---|---|
-| ![Arch systemctl](docs/screenshots/arch-systemctl-status.png) | ![Arch journalctl](docs/screenshots/arch-journalctl.png) |
+| ![Tray icons](docs/screenshots/02-tray-icons.png) | ![Arch daemon logs](docs/screenshots/arch-daemon-logs.png) |
 
 ---
 
