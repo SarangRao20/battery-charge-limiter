@@ -61,7 +61,10 @@ ec-charge-hack/
 │   └── GUIDE.md                       # Step-by-step tutorial
 │
 └── docs/
-    ├── ec-register-discovery.md       # Find registers on any laptop
+    ├── GENERIC_GUIDE.md               # "I have a different laptop" guide
+    ├── known-registers.md             # Community register database
+    ├── config-template.md             # Config templates for any platform
+    ├── ec-register-discovery.md       # Legacy discovery guide
     └── screenshots/
 ```
 
@@ -80,18 +83,14 @@ Both paths target the **same EC register (0x76)** — just different access meth
 
 ---
 
-## EC Register Discovery
+## I Have A Different Laptop
 
-Not all laptops use the same register. See [docs/ec-register-discovery.md](docs/ec-register-discovery.md).
+Start here: **[docs/GENERIC_GUIDE.md](docs/GENERIC_GUIDE.md)** — complete walkthrough to find your EC register, test it, and configure the daemon.
 
-### Known Registers
-
-| Laptop Model | Register | AUTO | INHIBIT | Notes |
-|-------------|----------|------|---------|-------|
-| HP Pavilion 15-eg3xxx | 0x76 | 0x40 | 0x45 | **This project's target** — volatile |
-| HP EliteBook 8xx G6+ | 0xD7 | 0x00 | 0x02 | Stable |
-| Lenovo IdeaPad | 0x6A | 0x03 | 0x01 | Tested on some models |
-| Dell Latitude | 0x0F | 0x00 | 0x80 | Varies by generation |
+Also:
+- **[docs/known-registers.md](docs/known-registers.md)** — community database of known registers by model
+- **[docs/config-template.md](docs/config-template.md)** — config templates for any laptop
+- **Detect scripts:** `windows/detect-ec.ps1` (Windows), `arch/detect-ec.sh` (Linux)
 
 ---
 

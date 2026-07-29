@@ -97,12 +97,16 @@ if ($ScanRange) {
     Write-Host "  2. Change value at different charge levels (e.g., 60% vs 90%)"
     Write-Host "  3. React when you write test values (careful!)"
 } else {
-    Write-Host ""
-    Write-Host "To scan full range, run:" -ForegroundColor Cyan
-    Write-Host "  detect-ec.ps1 -ScanRange" -ForegroundColor White
-    Write-Host ""
-    Write-Host "Suggested approach:" -ForegroundColor Yellow
-    Write-Host "  1. Run detect-ec.ps1 with AC plugged (battery > 90%)"
-    Write-Host "  2. Run detect-ec.ps1 with AC unplugged"
-    Write-Host "  3. Compare outputs — registers that changed are interesting"
+Write-Host ""
+Write-Host "To scan full range, run:" -ForegroundColor Cyan
+Write-Host "  detect-ec.ps1 -ScanRange" -ForegroundColor White
+Write-Host ""
+Write-Host "Suggested approach:" -ForegroundColor Yellow
+Write-Host "  1. Run detect-ec.ps1 with AC plugged (battery > 90%)"
+Write-Host "  2. Run detect-ec.ps1 with AC unplugged"
+Write-Host "  3. Compare outputs — registers that changed are interesting"
+Write-Host ""
+Write-Host "See also:" -ForegroundColor Cyan
+Write-Host "  docs/GENERIC_GUIDE.md   — Full walkthrough for any laptop"
+Write-Host "  docs/known-registers.md — Community register database"
 }
