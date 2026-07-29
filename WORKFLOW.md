@@ -1,156 +1,66 @@
 # Battery Charge Limiter — Workflow
 
 ## The Problem
-HP Pavilion 15-eg3xxx has no BIOS-level battery charge limit (unlike EliteBook/ProBook). After 2 years of always-plugged use at 100%, battery degraded to 71% health (41,050 mWh → 29,234 mWh, 240 cycles). Consumer HP laptops lack Battery Health Manager.
+HP Pavilion 15-eg3xxx has no BIOS-level battery charge limit. After 2 years of always-plugged use at 100%, battery degraded to 71% health (41,050 mWh → 29,234 mWh, 240 cycles).
 
-## Approach
-Instead of relying on missing firmware features, bypass the BIOS entirely by writing directly to the Embedded Controller (EC) register that controls battery charging.
+## Solution
+Bypass the BIOS entirely — write directly to the Embedded Controller (EC) register that controls charging.
 
-## Discovery Phase
+## Implementation
 
-### 1. Check Built-in Options
-- **myHP app** → No Battery Health Manager
-- **HP Command Center** → No charge limit setting
-- **BIOS (F.05)** → Only "Adaptive Battery Extender" (smart learning, NOT strict 80% limit)
-- **HP WMI** (`root\hp\instrumentedbios`) → No charge limit variable exposed
+| Platform | Approach | Details |
+|----------|----------|---------|
+| **Windows** | Direct EC register write via WinRing0 | [windows/GUIDE.md](windows/GUIDE.md) |
+| **Arch Linux** | ACPI WMI method via acpi_call | [arch/GUIDE.md](arch/GUIDE.md) |
 
-### 2. Find EC Register
-- Download **EC-Access-Tool.exe** + **WinRing0x64.sys**
-- Install WinRing0 driver
-- Scan EC registers while plugging/unplugging AC
-- Identify register **0x76** (BDVO — Battery De-Voltage Optimizer)
-- Values:
+Both target the same register: **BDVO @ 0x76** with **AUTO=0x40, INHIBIT=0x45**.
 
-| Value | Behavior | LED |
-|-------|----------|-----|
-| `0x00` | Stock — charges normally | RED |
-| `0x40` | AUTO (similar to stock) | WHITE (~1s) → flickers back to RED (0x00) |
-| `0x45` | **Stops charging**, AC stays online | RED |
-| `0x42` | Stops charging but disconnects AC | WHITE (battery drains) |
-
-**Key insight:** 0x40 gets reset by EC firmware to 0x00 within 1-2s → flicker. But both 0x00 and 0x45 are stable.
-
-### 3. Read-back Behavior
-- Writing `0x00` → reads back as `0x80` (bit 7 status flag)
-- Writing `0x45` → reads back as `0xC5` (original bit 7 flag preserved)
-
-### 4. Final Values
-| Mode | Write Value | Read-back | Effect |
-|------|-----------|-----------|--------|
-| AUTO (charge ≤80%) | `0x00` | `0x80` | Stock behavior, RED LED |
-| INHIBIT (charge >80%) | `0x45` | `0xC5` | Stop charge, RED LED, AC stays on |
-
-## Solution Architecture
-
-### Daemon (`windows/daemon.ps1`)
-- Language: PowerShell -STA (required for Windows.Forms NotifyIcon)
-- Poll: Every **3 seconds** (EC firmware resets register — must re-write)
-- Detection: WMI `Win32_Battery` for charge %, `PowerLineStatus` for AC (NOT WMI Charging flag — false negative when inhibited)
-- Hysteresis: Once inhibited, stays inhibited until charger unplugged
-
-### Icon States
-| Icon | Condition | EC Value |
-|------|-----------|----------|
-| 🟢 Green | Charge <80% AND AC plugged | Write `0x00` (AUTO) |
-| 🔴 Red | Charge ≥80% AND AC plugged | Write `0x45` (INHIBIT) |
-| ⚫ Gray | AC unplugged (discharging) | Do nothing |
-
-### Tray Menu
-- **Check Status** → Shows live battery %, EC read-back, charge state
-- **Bypass — Full Charge** → Writes 0x00 to let battery charge past 80% once
-- **Exit** → Stops daemon (EC falls back to stock behavior)
-
-### Single Instance Mutex
-Prevents duplicate daemons. No PID file, no logging, no registry writes.
-
-## Setup Process
-
-### Installer (`windows/setup.ps1`)
-1. Install WinRing0 driver (AUTO_START)
-2. Copy daemon.ps1 + icons → C:\EC-Tool\
-3. Create scheduled task **Battery80Cap** (AtLogon trigger)
-4. Start daemon immediately
-
-### Manual Steps (first time)
-1. Disable Secure Boot (required for unsigned WinRing0 driver)
-2. Add Windows Defender exclusion for C:\EC-Tool\
-3. Run setup.ps1 as Administrator
-
-## Testing & Verification
-
-### EC Read/Write Test
-```powershell
-# Read current value
-& "C:\EC-Tool\EC-Access-Tool.exe" /ro 0x76
-
-# Write inhibit
-& "C:\EC-Tool\EC-Access-Tool.exe" /wo 0x76 0x45
-
-# Write auto
-& "C:\EC-Tool\EC-Access-Tool.exe" /wo 0x76 0x00
-```
-
-### Verify Charge Stops
-- At 80%+: Charge rate drops to 0 in WMI, RED tray icon appears
-- Unplug/replug: Charge resumes (0x00), RED icon, daemon re-detects <80%
-- Below 80%: Normal charging, GREEN icon
-
-## Files
+## Repository
 
 ```
 ec-charge-hack/
-├── WORKFLOW.md                           ← This file
+├── WORKFLOW.md                        ← This file
 ├── README.md
-├── windows/
-│   ├── daemon.ps1            # Main tray daemon
-│   ├── setup.ps1             # One-click installer
-│   ├── detect-ec.ps1         # EC register scanner
-│   ├── GUIDE.md              # Step-by-step tutorial
+│
+├── windows/                           # Windows daemon (tray icon, 3s poll)
+│   ├── daemon.ps1
+│   ├── setup.ps1
+│   ├── detect-ec.ps1
+│   ├── GUIDE.md
 │   └── icons/
-│       ├── green.ico         # Charging (<80%)
-│       ├── red.ico           # Inhibited (≥80%)
-│       └── gray.ico          # Discharging
-├── arch/                     # Linux implementation
-│   ├── battery-charge-limiter         # Python daemon (acpi_call)
-│   ├── battery-charge-limiter.service # systemd unit
-│   ├── setup.sh                       # One-click installer
-│   ├── GUIDE.md                       # Step-by-step tutorial
-│   └── detect-ec.sh                   # EC register scanner
-├── docs/
-│   ├── ec-register-discovery.md
-│   └── screenshots/
-│       ├── 01-terminal-proof.png
-│       ├── 02-tray-icons.png
-│       ├── 03-tray-green.png
-│       └── 04-tray-red.png
+│
+├── arch/                              # Arch Linux daemon (headless, 60s poll)
+│   ├── battery-charge-limiter
+│   ├── battery-charge-limiter.service
+│   ├── setup.sh
+│   ├── detect-ec.sh
+│   └── GUIDE.md
+│
+└── docs/
+    ├── ec-register-discovery.md
+    └── screenshots/
 ```
 
-## Linux Daemon (Arch)
+## Key Differences Between Platforms
 
-Same concept as Windows — different EC access method.
+| Aspect | Windows | Arch Linux |
+|--------|---------|------------|
+| EC access method | RW-Everything / WinRing0 → direct EC I/O port | acpi_call kernel module → /proc/acpi/call |
+| What gets written | Raw value `0x45` to register `0x76` | ACPI buffer → internally writes `0x45` to same register |
+| Poll interval | 3 seconds (register resets by firmware) | 60 seconds (ACPI state is more stable) |
+| Reason | Direct register write gets overridden by EC firmware | ACPI methods set a persistent state |
+| Driver needed | WinRing0x64.sys (or RwDrv.sys) | acpi_call-dkms (kernel module) |
+| User interface | System tray icon with colored states | systemd service, journalctl logs |
+| Tray icons | 🟢 Green (charging), 🔴 Red (inhibited), ⚫ Gray (discharging) | N/A |
 
-| Aspect | Linux |
-|--------|-------|
-| EC access | `acpi_call` kernel module → `/proc/acpi/call` |
-| INHIBIT method | `\_SB.WMID.SBCO BUFQ{0x00, 0x05, 0x00, 0x00}` |
-| AUTO method | `\_SB.WMID.SBCC BUFQ{0x00, 0x00, 0x00, 0x00}` |
-| Poll interval | 60 seconds (ACPI state is stable) |
-| Visual feedback | `journalctl -u battery-charge-limiter -f` |
-| Auto-start | systemd service (enabled by setup.sh) |
+## Why 3s vs 60s?
 
-### Why 60s Instead of 3s?
+On Windows, writing `0x45` to register `0x76` stops charging, but the EC firmware resets it back to AUTO (`0x80`) within seconds. The daemon must **continuously re-write** every 3 seconds.
 
-On Windows, the EC register (0x76) gets reset by firmware every few seconds — hence the 3-second re-write loop.
+On Linux, the ACPI WMI method (`\_SB.WMID.SBCO` / `\_SB.WMID.SBCC`) sets a state that the firmware respects without aggressive resetting. 60-second polling is enough — the daemon is checking if conditions changed, not fighting a reset.
 
-On Linux, the ACPI WMI method (`SBCO`/`SBCC`) sets a persistent state in the EC that the firmware doesn't override. So 60-second polling is sufficient — the daemon is just checking if conditions changed, not fighting a reset.
+## Files
 
-## Why This Approach Works
-
-| Problem | Solution |
-|---------|----------|
-| No BIOS charge limit | Bypass BIOS, write to EC directly |
-| EC firmware resets register | Re-write every 3 seconds |
-| WMI shows Charging=False when inhibited | Use `PowerLineStatus` for AC detection |
-| Dual daemon instances | Global mutex |
-| Tray icon needs GUI thread | PowerShell -STA flag |
-| Consumer HP hides the feature | Hidden EC register still works |
+See platform-specific guides for detailed file explanations:
+- [windows/GUIDE.md](windows/GUIDE.md)
+- [arch/GUIDE.md](arch/GUIDE.md)
