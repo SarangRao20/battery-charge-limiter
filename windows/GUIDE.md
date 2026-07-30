@@ -31,15 +31,15 @@ If your laptop is from HP, Lenovo, Dell, or ASUS — there's a good chance it ha
 
 This is the tool that talks to your Embedded Controller. It supports **two drivers**:
 
+- **RwDrv.sys** — from RW-Everything, **Microsoft-signed** (works with Secure Boot ON) ✅ recommended
 - **WinRing0x64.sys** — works on most systems (may need Secure Boot disabled)
-- **RwDrv.sys** — from RW-Everything, **Microsoft-signed** (works with Secure Boot ON)
+
+**A note on safety:** Both drivers are standard, widely-used components. WinRing0 is the same driver used by CrystalDiskMark and Open Hardware Monitor. A community member on Reddit (`port443`) independently reversed the driver in Ghidra and confirmed it's a straightforward I/O access driver — no malicious functionality. The installer also verifies SHA256 hashes automatically.
 
 Download from here:  
 👉 [https://github.com/shubhampaul/EC-Access-Tool](https://github.com/shubhampaul/EC-Access-Tool)
 
-Grab `EC-Access-Tool.exe` and the driver of your choice. Put them in `C:\EC-Tool\`.
-
-Or just run the included `setup.ps1` which does this automatically.
+Or just run `setup.ps1` which downloads everything and verifies hashes.
 
 ---
 

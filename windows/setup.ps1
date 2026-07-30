@@ -17,6 +17,17 @@ $ecUrl      = "https://github.com/shubhampaul/EC-Access-Tool/raw/main/EC-Access-
 $winringUrl = "https://github.com/shubhampaul/EC-Access-Tool/raw/main/WinRing0x64.sys"
 $rwdrvUrl   = "https://github.com/shubhampaul/EC-Access-Tool/raw/main/RwDrv.sys"
 
+# SHA256 hashes (verified against repo at time of release)
+$ecHash     = "e1b274c59f975206c247e05b78387c6d5748019ad67a82bba4357a5e00c64f84"
+$winringHash = "11bd2c9f9e2397c9a16e0990e4ed2cf0679498fe0fd418a3dfdac60b5c160ee5"
+$rwdrvHash  = "d6384d3072b5d636cfe2ab056b2f53dd82997bdc16eba8132f1b734ba7a72b31"
+
+function Verify-FileHash($path, $expected) {
+    if (-not (Test-Path $path)) { return $false }
+    $actual = (Get-FileHash -Path $path -Algorithm SHA256).Hash.ToLower()
+    return $actual -eq $expected.ToLower()
+}
+
 Write-Host "=== Battery Charge Limiter Setup ===" -ForegroundColor Cyan
 
 # 1. Check/install driver (try RwDrv first — signed by Microsoft)
@@ -39,9 +50,19 @@ if ($rwService -and $rwService.Status -eq "Running") {
         Write-Host "Downloading EC-Access-Tool..." -NoNewline
         try {
             Invoke-WebRequest -Uri $ecUrl -OutFile "$env:TEMP\EC-Access-Tool.exe" -UseBasicParsing -ErrorAction Stop
+            if (-not (Verify-FileHash "$env:TEMP\EC-Access-Tool.exe" $ecHash)) {
+                Write-Host " HASH MISMATCH" -ForegroundColor Red
+                Remove-Item "$env:TEMP\EC-Access-Tool.exe" -Force -ErrorAction SilentlyContinue
+                exit 1
+            }
             # Try RwDrv first (signed)
             try {
                 Invoke-WebRequest -Uri $rwdrvUrl -OutFile "$env:TEMP\RwDrv.sys" -UseBasicParsing -ErrorAction Stop
+                if (-not (Verify-FileHash "$env:TEMP\RwDrv.sys" $rwdrvHash)) {
+                    Write-Host " RwDrv HASH MISMATCH" -ForegroundColor Red
+                    Remove-Item "$env:TEMP\RwDrv.sys" -Force -ErrorAction SilentlyContinue
+                    throw "hash mismatch"
+                }
                 sc.exe create RwDrv type= kernel binPath= "$env:TEMP\RwDrv.sys" | Out-Null
                 sc.exe start RwDrv | Out-Null
                 Start-Sleep 1
@@ -50,6 +71,11 @@ if ($rwService -and $rwService.Status -eq "Running") {
             } catch {
                 # Fall back to WinRing0
                 Invoke-WebRequest -Uri $winringUrl -OutFile "$env:TEMP\WinRing0x64.sys" -UseBasicParsing -ErrorAction Stop
+                if (-not (Verify-FileHash "$env:TEMP\WinRing0x64.sys" $winringHash)) {
+                    Write-Host " WinRing0 HASH MISMATCH" -ForegroundColor Red
+                    Remove-Item "$env:TEMP\WinRing0x64.sys" -Force -ErrorAction SilentlyContinue
+                    exit 1
+                }
                 & "$env:TEMP\EC-Access-Tool.exe" -install
                 Start-Sleep 2
                 $wrService = Get-Service WinRing0_1_2_0 -ErrorAction SilentlyContinue
