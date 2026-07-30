@@ -23,6 +23,7 @@ $autoVal    = "00"
 $inhibitVal = "45"
 $stopAt     = 80
 $iconDir    = if (Test-Path "$PSScriptRoot\icons") { "$PSScriptRoot\icons" } else { "C:\EC-Tool" }
+$driver     = if (Get-Service RwDrv -ErrorAction SilentlyContinue) { "-rwdrv" } else { "-winring0" }
 
 # === ICONS ===
 $greenIcon = [System.Drawing.Icon]::ExtractAssociatedIcon("$iconDir\green.ico")
@@ -48,7 +49,7 @@ $bypassed  = $false
 
 # === MENU EVENTS ===
 $itemStatus.add_Click({
-    $v = & $ecTool -winring0 -r $regAddr
+    $v = & $ecTool $driver -r $regAddr
     $b = Get-WmiObject Win32_Battery
     $val = $v.Trim()
     $s = if ($val -eq "0xc5" -or $val -eq "0x45") { "INHIBITED" } else { "AUTO" }
@@ -65,7 +66,7 @@ $itemBypass.add_Click({
         $itemBypass.Text = "Bypass - Full Charge"
         $tray.ShowBalloonTip(3000, "Battery Cap", "Protection enabled (stop at ${stopAt}%)", 1)
     } else {
-        & $ecTool -winring0 -w $regAddr $autoVal | Out-Null
+        & $ecTool $driver -w $regAddr $autoVal | Out-Null
         $inhibited = $false; $bypassed = $true
         $itemBypass.Text = "Cancel Bypass"
         $tray.Icon = $greenIcon
@@ -92,17 +93,17 @@ $timer.add_Tick({
 
     if ($acOnline) {
         if ($charge -ge $stopAt) {
-            & $ecTool -winring0 -w $regAddr $inhibitVal | Out-Null
+            & $ecTool $driver -w $regAddr $inhibitVal | Out-Null
             if (-not $inhibited) {
                 $inhibited = $true
                 $tray.Icon = $redIcon
                 $tray.ShowBalloonTip(3000, "Battery Cap", "Charging stopped at ${charge}%", 2)
             }
         } elseif (-not $inhibited) {
-            & $ecTool -winring0 -w $regAddr $autoVal | Out-Null
+            & $ecTool $driver -w $regAddr $autoVal | Out-Null
             $tray.Icon = $greenIcon
         }
-        if ($inhibited) { & $ecTool -winring0 -w $regAddr $inhibitVal | Out-Null }
+        if ($inhibited) { & $ecTool $driver -w $regAddr $inhibitVal | Out-Null }
     } else {
         $tray.Icon = $grayIcon
         $inhibited = $false
