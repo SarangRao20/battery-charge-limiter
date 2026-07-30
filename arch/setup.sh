@@ -70,6 +70,14 @@ if ! lsmod | grep -q "^acpi_call"; then
 fi
 ok "acpi_call module loaded"
 
+# Make module persistent across reboots
+if [[ ! -f /etc/modules-load.d/acpi_call.conf ]]; then
+    echo "acpi_call" > /etc/modules-load.d/acpi_call.conf
+    ok "acpi_call added to modules-load.d (loads on boot)"
+else
+    ok "acpi_call already in modules-load.d"
+fi
+
 # 4. Install daemon
 log "[3/4] Installing daemon..."
 cp "$SCRIPT_DIR/battery-charge-limiter" /usr/bin/battery-charge-limiter

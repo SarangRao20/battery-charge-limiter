@@ -4,7 +4,7 @@ After=multi-user.target
 
 [Service]
 Type=simple
-ExecStart=/usr/local/bin/battery-charge-limiter
+ExecStart=/usr/bin/battery-charge-limiter
 Restart=on-failure
 RestartSec=10
 
