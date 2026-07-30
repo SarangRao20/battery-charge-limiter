@@ -122,10 +122,10 @@ WinRing0 requires Secure Boot disabled or signed driver. RW-Everything's RwDrv.s
 
 ---
 
-## Disclaimer
-
-This writes directly to your laptop's Embedded Controller registers. Hardware-level operation with risks. Tested on HP Pavilion 15-eg3xxx only. Use at your own risk.
-
 ## License
 
 MIT
+
+## AI Disclosure
+
+Parts of the code (daemon scripts, installers, PKGBUILD) and some documentation were written with assistance from AI. The core reverse engineering work (DSDT analysis, EC register discovery, ACPI method identification) was done manually. No AI was used to generate or reverse-engineer the DSDT or EC register logic.

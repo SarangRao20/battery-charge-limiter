@@ -13,6 +13,8 @@ $dest       = "C:\EC-Tool"
 $daemonPath = "$PSScriptRoot\daemon.ps1"
 $iconSrc    = "$PSScriptRoot\icons"
 $iconDest   = "$dest"
+# SHA256 hashes for downloaded files (verify against actual downloads)
+$expectedHash      = ""  # Set after manual verification: Get-FileHash -Path <file>
 $ecUrl      = "https://github.com/shubhampaul/EC-Access-Tool/raw/main/EC-Access-Tool.exe"
 $driverUrl  = "https://github.com/shubhampaul/EC-Access-Tool/raw/main/WinRing0x64.sys"
 
