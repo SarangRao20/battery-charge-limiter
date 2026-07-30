@@ -40,6 +40,7 @@ Daemon monitors battery % every N seconds
 |----------|-------|----------------|
 | **Windows** | [windows/GUIDE.md](windows/GUIDE.md) | `powershell -File windows\setup.ps1` (Admin) |
 | **Arch Linux** | [arch/GUIDE.md](arch/GUIDE.md) | `sudo bash arch/setup.sh` |
+| **Arch (AUR)** | [arch/GUIDE.md](arch/GUIDE.md) | `yay -S battery-charge-limiter` |
 
 ---
 
@@ -58,6 +59,7 @@ Battery-Charge-Limiter/
 │   ├── battery-charge-limiter.service # systemd unit
 │   ├── setup.sh                       # One-click installer
 │   ├── detect-ec.sh                   # EC register scanner
+│   ├── PKGBUILD                       # AUR package recipe
 │   └── GUIDE.md                       # Step-by-step tutorial
 │
 └── docs/

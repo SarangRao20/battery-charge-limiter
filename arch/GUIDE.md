@@ -96,7 +96,19 @@ Expected output from `cat /proc/acpi/call`:
 
 ## Step 3: Run the Daemon
 
-### Option A: One-click installer
+### Option A: AUR (recommended)
+
+```bash
+yay -S battery-charge-limiter
+# or: paru -S battery-charge-limiter
+```
+
+Then enable the service:
+```bash
+sudo systemctl enable --now battery-charge-limiter
+```
+
+### Option B: One-click installer
 
 ```bash
 cd arch/
@@ -105,7 +117,7 @@ sudo bash setup.sh
 
 This handles everything: installs dependencies, loads modules, sets up the service, creates aliases.
 
-### Option B: Manual
+### Option C: Manual
 
 ```bash
 # Copy the daemon
