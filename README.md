@@ -46,7 +46,7 @@ Daemon monitors battery % every N seconds
 ## Repository Structure
 
 ```
-ec-charge-hack/
+Battery-Charge-Limiter/
 ├── windows/           # Windows: PowerShell daemon, tray icons, setup
 │   ├── daemon.ps1     # System tray daemon (3s poll, GUI icons)
 │   ├── setup.ps1      # One-click installer
