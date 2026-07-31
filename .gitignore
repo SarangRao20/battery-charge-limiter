@@ -1,10 +1,2 @@
-# Binaries (download separately)
-*.exe
-*.sys
-*.dll
-
-# Driver files
-windows/driver/*
-
 # User data
 *.log
