@@ -3,8 +3,8 @@
     Battery Charge Limiter Daemon
 .DESCRIPTION
     Monitors battery charge level and inhibits charging at 80%
-    by writing EC register 0x76 (0x00=stock/charge, 0x45=stop).
-    Uses WinRing0 driver for EC access.
+    by writing EC register 0x76 (0x40=auto/charge, 0x45=stop).
+    Uses WinRing0 or RwDrv driver for EC access.
 .NOTES
     Run: powershell -STA -WindowStyle Hidden -File daemon.ps1
     Tested: HP Pavilion 15-eg3xxx
@@ -19,11 +19,11 @@ if (-not $mutex.WaitOne(0, $false)) { $mutex.Dispose(); exit 0 }
 # === CONFIG ===
 $ecTool     = "C:\EC-Tool\EC-Access-Tool.exe"
 $regAddr    = "76"
-$autoVal    = "00"
+$autoVal    = "40"
 $inhibitVal = "45"
 $stopAt     = 80
 $iconDir    = if (Test-Path "$PSScriptRoot\icons") { "$PSScriptRoot\icons" } else { "C:\EC-Tool" }
-$driver     = if (Get-Service RwDrv -ErrorAction SilentlyContinue) { "-rwdrv" } else { "-winring0" }
+$driver     = if ((Get-Service RwDrv -ErrorAction SilentlyContinue).Status -eq "Running") { "-rwdrv" } else { "-winring0" }
 
 # === ICONS ===
 $greenIcon = [System.Drawing.Icon]::ExtractAssociatedIcon("$iconDir\green.ico")

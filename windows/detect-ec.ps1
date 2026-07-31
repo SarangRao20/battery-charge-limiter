@@ -28,9 +28,10 @@ if (-not (Test-Path $EcTool)) {
 }
 
 # Test basic access
-$test = & $EcTool -winring0 -r 76 2>$null
+$driver = if ((Get-Service RwDrv -ErrorAction SilentlyContinue).Status -eq "Running") { "-rwdrv" } else { "-winring0" }
+$test = & $EcTool $driver -r 76 2>$null
 if (-not ($test -match "0x")) {
-    Write-Host "WinRing0 driver not responding. Run: $EcTool -install" -ForegroundColor Red
+    Write-Host "Driver not responding. Run: setup.bat (or $EcTool -install)" -ForegroundColor Red
     exit 1
 }
 
@@ -56,7 +57,7 @@ Write-Host ""
 #>
 
 function Test-KnownRegister($addr, $label) {
-    $v = & $EcTool -winring0 -r $addr 2>$null
+    $v = & $EcTool $driver -r $addr 2>$null
     if ($v -match "0x[0-9a-f]+") {
         Write-Host "  0x$("{0:x2}" -f $addr) ($label) : $($v.Trim())" -ForegroundColor Gray
         return $v.Trim()
@@ -86,7 +87,7 @@ if ($ScanRange) {
     Write-Host "  (non-zero values shown, press Ctrl+C to stop)" -ForegroundColor DarkGray
     Write-Host ""
     for ($a = $StartAddr; $a -le $EndAddr; $a++) {
-        $v = & $EcTool -winring0 -r $a 2>$null
+        $v = & $EcTool $driver -r $a 2>$null
         if ($v -match "0x[0-9a-f]+" -and $v.Trim() -ne "0x00" -and $v.Trim() -ne "0x80") {
             Write-Host "  0x$("{0:x2}" -f $a) = $($v.Trim())"
         }

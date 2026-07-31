@@ -52,7 +52,7 @@ Forget the manual steps below. **Double-click `setup.bat`** (right-click → *Ru
 4. Registers a scheduled task to launch the daemon at logon
 5. Tests register readback, then launches the tray daemon
 
-If Defender flags the driver, click **Allow on device** — it's the standard WinRing0 driver used by CrystalDiskMark (details above).
+If Defender flags the driver (WinRing0 is known to Defender as a "HackTool" — it's the standard driver used by CrystalDiskMark and Open Hardware Monitor), you may need to **Allow on device** in *Windows Security → Protection history*. Do this for the `.sys` file if it was quarantined during repo download/clone. If setup reports the driver as *NOT FOUND*, this is the cause — restore it from quarantine and allow it, or re-download the repo.
 
 ---
 
@@ -303,7 +303,7 @@ Different laptop? Different register? Same script, just change:
 
 ```powershell
 $regAddr    = "D7"    # your register in hex
-$autoVal    = "00"    # your AUTO value
+$autoVal    = "40"    # your AUTO value (HP Pavilion uses 0x40)
 $inhibitVal = "02"    # your INHIBIT value
 ```
 

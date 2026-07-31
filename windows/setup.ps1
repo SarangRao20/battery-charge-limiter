@@ -31,8 +31,9 @@ function Start-DriverService($name) {
     if ($svc.Status -ne "Running") {
         sc.exe start $name | Out-Null
         Start-Sleep 1
+        $svc = Get-Service $name -ErrorAction SilentlyContinue
     }
-    return $true
+    return ($svc.Status -eq "Running")
 }
 
 Write-Host "=== Battery Charge Limiter Setup ===" -ForegroundColor Cyan
@@ -45,14 +46,27 @@ Add-MpPreference -ExclusionPath $dest -ErrorAction SilentlyContinue
 Write-Host "[1/5] Verifying vendored files..." -NoNewline
 $ecPath = "$drvSrc\EC-Access-Tool.exe"
 $winringPath = "$drvSrc\WinRing0x64.sys"
+if (-not (Test-Path $ecPath)) {
+    Write-Host " EC-Access-Tool.exe NOT FOUND" -ForegroundColor Red
+    Write-Host "Was it quarantined by Defender? Check Windows Security > Virus & threat protection."
+    exit 1
+}
 if (-not (Verify-FileHash $ecPath $ecHash)) {
-    Write-Host " EC-Access-Tool.exe MISSING/MISMATCH" -ForegroundColor Red
+    Write-Host " EC-Access-Tool.exe HASH MISMATCH" -ForegroundColor Red
     Write-Host "Expected SHA256: $ecHash"
+    Write-Host "Re-download from the repo or restore from Defender quarantine."
+    exit 1
+}
+if (-not (Test-Path $winringPath)) {
+    Write-Host " WinRing0x64.sys NOT FOUND" -ForegroundColor Red
+    Write-Host "WinRing0 is sometimes flagged as a 'HackTool' by Defender."
+    Write-Host "Allow it: Windows Security > Protection history > Allow on device."
     exit 1
 }
 if (-not (Verify-FileHash $winringPath $winringHash)) {
-    Write-Host " WinRing0x64.sys MISSING/MISMATCH" -ForegroundColor Red
+    Write-Host " WinRing0x64.sys HASH MISMATCH" -ForegroundColor Red
     Write-Host "Expected SHA256: $winringHash"
+    Write-Host "Re-download from the repo or restore from Defender quarantine."
     exit 1
 }
 Write-Host " OK" -ForegroundColor Green
@@ -66,7 +80,8 @@ if (Start-DriverService "RwDrv") {
     $useRwDrv = $true
     Write-Host " RwDrv OK (already running)" -ForegroundColor Green
 } elseif (Test-Path $rwdrvLocal) {
-    # RwDrv present but not installed -> install from local copy
+    # RwDrv present but not installed -> copy first, then install
+    Copy-Item $rwdrvLocal "$dest\RwDrv.sys" -Force
     sc.exe create RwDrv type= kernel start= auto binPath= "$dest\RwDrv.sys" | Out-Null
     sc.exe start RwDrv | Out-Null
     Start-Sleep 1
@@ -76,6 +91,7 @@ if (Start-DriverService "RwDrv") {
     Write-Host " WinRing0 OK (already running)" -ForegroundColor Green
 } else {
     # Install WinRing0 from vendored copy
+    Copy-Item $ecPath "$dest\EC-Access-Tool.exe" -Force
     Copy-Item $winringPath "$dest\WinRing0x64.sys" -Force
     & "$dest\EC-Access-Tool.exe" -install
     Start-Sleep 2
