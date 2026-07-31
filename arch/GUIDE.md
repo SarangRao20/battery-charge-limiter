@@ -141,18 +141,28 @@ journalctl -u battery-charge-limiter -f
 
 ---
 
-## Step 4: Helper Aliases
+## Step 4: Helper Commands
 
-If you used `setup.sh`, the aliases are already installed. Otherwise, add to your `~/.bashrc` or `~/.zshrc`:
+`setup.sh` installs three commands to `/usr/bin` — no aliases or `.bashrc` edits needed:
 
-```bash
-# Battery Charge Limiter aliases
-alias bat-inhibit='echo "\_SB.WMID.SBCO BUFQ{0x00, 0x05, 0x00, 0x00}" | sudo tee /proc/acpi/call && echo "Charging INHIBITED"'
-alias bat-auto='echo "\_SB.WMID.SBCC BUFQ{0x00, 0x00, 0x00, 0x00}" | sudo tee /proc/acpi/call && echo "Charging AUTO restored"'
-alias bat-status='echo "Battery:" && cat /sys/class/power_supply/BAT0/capacity | xargs -I{} echo "  Level: {}%" && cat /sys/class/power_supply/BAT0/status | xargs -I{} echo "  Status: {}" && cat /sys/class/power_supply/BAT0/power_now | awk "{printf \"  Power: %.2f W\\n\", \$1/1000000}"'
+- **`bat-status`** — battery level, health, power draw, cycles, charge mode
+- **`bat-inhibit`** — manually stop charging
+- **`bat-auto`** — manually resume charging
+
+Example output:
+
+```
+=== Battery: HP Primary ===
+  Charge     : 80%
+  Status     : Not charging
+  Health     : 72%
+  Power      : 0.00 W
+  Voltage    : 11.95 V
+  Cycles     : 246
+  Mode       : INHIBITED (daemon active)
 ```
 
-Then `source ~/.bashrc` and you're good.
+> `Health` is `energy_full / energy_full_design` — how much capacity the battery has lost to degradation.
 
 ---
 

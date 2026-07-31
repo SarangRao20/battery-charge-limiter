@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+# Resume normal charging via ACPI WMI method. Requires root.
+set -euo pipefail
+echo '\_SB.WMID.SBCC BUFQ{0x00, 0x00, 0x00, 0x00}' | sudo tee /proc/acpi/call >/dev/null
+echo "Charging AUTO restored"

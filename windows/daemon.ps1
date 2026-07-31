@@ -54,8 +54,9 @@ $itemStatus.add_Click({
     $val = $v.Trim()
     $s = if ($val -eq "0xc5" -or $val -eq "0x45") { "INHIBITED" } else { "AUTO" }
     $ac = if ([System.Windows.Forms.SystemInformation]::PowerStatus.PowerLineStatus -eq 1) { "Plugged" } else { "On Battery" }
+    $health = if ($b.DesignCapacity) { [math]::Round(($b.FullChargeCapacity / $b.DesignCapacity) * 100) } else { "?" }
     [System.Windows.Forms.MessageBox]::Show(
-        "Register 0x$regAddr : $val ($s)`nBattery : $($b.EstimatedChargeRemaining)%`nAC      : $ac",
+        "EC reg 0x$regAddr : $val  ($s)`nBattery  : $($b.EstimatedChargeRemaining)%`nHealth   : $health%  ($($b.FullChargeCapacity)/$($b.DesignCapacity) mWh)`nStatus   : $($b.BatteryStatus)`nAC       : $ac`nRuntime  : $($b.EstimatedRunTime) min",
         "Battery Cap"
     )
 })

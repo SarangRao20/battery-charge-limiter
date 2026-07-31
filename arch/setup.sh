@@ -82,7 +82,13 @@ fi
 log "[3/4] Installing daemon..."
 cp "$SCRIPT_DIR/battery-charge-limiter" /usr/bin/battery-charge-limiter
 chmod +x /usr/bin/battery-charge-limiter
-ok "Daemon installed to /usr/bin/battery-charge-limiter"
+cp "$SCRIPT_DIR/bat-status" /usr/bin/bat-status
+chmod +x /usr/bin/bat-status
+cp "$SCRIPT_DIR/bat-inhibit" /usr/bin/bat-inhibit
+chmod +x /usr/bin/bat-inhibit
+cp "$SCRIPT_DIR/bat-auto" /usr/bin/bat-auto
+chmod +x /usr/bin/bat-auto
+ok "Daemon + bat-* tools installed"
 
 # 5. Install & enable systemd service
 log "[4/4] Installing systemd service..."
@@ -96,7 +102,7 @@ echo ""
 log "=== Setup Complete ==="
 echo ""
 echo "  Commands:"
-echo "    bat-status     → Check battery level, status, power"
+echo "    bat-status     → Battery level, health, power, cycles"
 echo "    bat-inhibit    → Manually stop charging"
 echo "    bat-auto       → Manually resume charging"
 echo ""

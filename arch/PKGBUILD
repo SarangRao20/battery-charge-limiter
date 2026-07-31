@@ -21,6 +21,11 @@ package() {
   # Daemon script
   install -Dm755 "arch/battery-charge-limiter" "${pkgdir}/usr/bin/battery-charge-limiter"
 
+  # Helper commands
+  install -Dm755 "arch/bat-status" "${pkgdir}/usr/bin/bat-status"
+  install -Dm755 "arch/bat-inhibit" "${pkgdir}/usr/bin/bat-inhibit"
+  install -Dm755 "arch/bat-auto" "${pkgdir}/usr/bin/bat-auto"
+
   # Systemd service
   install -Dm644 "arch/battery-charge-limiter.service" "${pkgdir}/usr/lib/systemd/system/battery-charge-limiter.service"
 

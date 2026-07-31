@@ -1,0 +1,43 @@
+#!/usr/bin/env bash
+# Battery status with health, power draw, cycles, and charge mode.
+
+BAT="/sys/class/power_supply/BAT0"
+
+rd() { cat "$BAT/$1" 2>/dev/null || echo "N/A"; }
+
+capacity=$(rd capacity)
+status=$(rd status)
+if [[ "$(rd energy_full_design)" != "N/A" && "$(rd energy_full_design)" != "0" ]]; then
+    health_raw=$(awk "BEGIN { printf \"%.0f\", ($(rd energy_full) / $(rd energy_full_design)) * 100 }" 2>/dev/null)
+else
+    health_raw="N/A"
+fi
+power_w=$(awk "BEGIN { printf \"%.2f\", $(rd power_now) / 1000000 }" 2>/dev/null)
+voltage_v=$(awk "BEGIN { printf \"%.2f\", $(rd voltage_now) / 1000000 }" 2>/dev/null)
+cycles=$(rd cycle_count)
+model=$(rd model_name)
+manufacturer=$(rd manufacturer)
+
+echo "=== Battery: $manufacturer $model ==="
+
+printf "  %-10s : %s%%\n" "Charge" "$capacity"
+printf "  %-10s : %s\n"   "Status" "$status"
+printf "  %-10s : %s%%\n" "Health" "$health_raw"
+printf "  %-10s : %s W\n" "Power"  "$power_w"
+if [[ -f "$BAT/current_now" ]]; then
+    current_a=$(awk "BEGIN { printf \"%.2f\", $(rd current_now) / 1000000 }" 2>/dev/null)
+    printf "  %-10s : %s A\n" "Current" "$current_a"
+fi
+printf "  %-10s : %s V\n" "Voltage" "$voltage_v"
+if [[ "$cycles" != "N/A" ]]; then
+    printf "  %-10s : %s\n" "Cycles" "$cycles"
+fi
+
+# Charge mode: daemon inhibits at stop threshold
+if systemctl is-active --quiet battery-charge-limiter 2>/dev/null; then
+    printf "  %-10s : INHIBITED (daemon active)\n" "Mode"
+elif [[ "$status" == "Not charging" || "$status" == "Full" ]]; then
+    printf "  %-10s : not charging\n" "Mode"
+else
+    printf "  %-10s : charging allowed\n" "Mode"
+fi
