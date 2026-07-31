@@ -53,6 +53,7 @@ Battery-Charge-Limiter/
 │   ├── setup.ps1      # One-click installer (driver, service, task)
 │   ├── setup.bat      # Double-click launcher for setup.ps1
 │   ├── detect-ec.ps1  # EC register scanner
+│   ├── drivers/       # Vendored EC-Access-Tool + WinRing0 (SHA256 pinned)
 │   └── GUIDE.md       # Step-by-step tutorial
 │
 ├── arch/              # Arch Linux: Python daemon, systemd service

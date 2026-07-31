@@ -27,19 +27,18 @@ If your laptop is from HP, Lenovo, Dell, or ASUS — there's a good chance it ha
 
 ---
 
-## Step 1: Download EC-Access-Tool
+## Step 1: The Drivers
 
-This is the tool that talks to your Embedded Controller. It supports **two drivers**:
+Everything you need is **already in the repo** under `windows/drivers/`. No third-party downloads at install time:
 
-- **RwDrv.sys** — from RW-Everything, **Microsoft-signed** (works with Secure Boot ON) ✅ recommended
-- **WinRing0x64.sys** — works on most systems (may need Secure Boot disabled)
+- **`EC-Access-Tool.exe`** — the tool that talks to your Embedded Controller (GPLv3)
+- **`WinRing0x64.sys`** — the standard hardware-access driver used by CrystalDiskMark & Open Hardware Monitor (BSD, from OpenLibSys)
 
-**A note on safety:** Both drivers are standard, widely-used components. WinRing0 is the same driver used by CrystalDiskMark and Open Hardware Monitor. A community member on Reddit (`port443`) independently reversed the driver in Ghidra and confirmed it's a straightforward I/O access driver — no malicious functionality. The installer also verifies SHA256 hashes automatically.
+Both are committed with pinned SHA256 hashes, and `setup.ps1` refuses to install on any mismatch.
 
-Download from here:  
-👉 [https://github.com/shubhampaul/EC-Access-Tool](https://github.com/shubhampaul/EC-Access-Tool)
+**Optional — RwDrv.sys:** Not bundled (it's proprietary to RW-Everything). If you want it, install [RW-Everything](http://rweverything.com/), copy `C:\Windows\System32\drivers\RwDrv.sys` into `windows/drivers/`, and setup will prefer it. Details in `windows/drivers/README.md`.
 
-Or just run `setup.ps1` which downloads everything and verifies hashes.
+A community member on Reddit (`port443`) independently reversed WinRing0x64.sys in Ghidra and confirmed it's a straightforward I/O access driver — no malicious functionality.
 
 ---
 
@@ -47,8 +46,8 @@ Or just run `setup.ps1` which downloads everything and verifies hashes.
 
 Forget the manual steps below. **Double-click `setup.bat`** (right-click → *Run as administrator* if needed). It:
 
-1. Downloads EC-Access-Tool + driver, verifies SHA256
-2. Installs the driver as an auto-start service (RwDrv preferred, WinRing0 fallback)
+1. Verifies the vendored `EC-Access-Tool.exe` + driver against pinned SHA256
+2. Installs the driver as an auto-start service (local RwDrv if present, else WinRing0)
 3. Adds a Defender exclusion for `C:\EC-Tool`
 4. Registers a scheduled task to launch the daemon at logon
 5. Tests register readback, then launches the tray daemon
