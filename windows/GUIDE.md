@@ -43,6 +43,20 @@ Or just run `setup.ps1` which downloads everything and verifies hashes.
 
 ---
 
+## Fast Path: setup.bat (recommended)
+
+Forget the manual steps below. **Double-click `setup.bat`** (right-click → *Run as administrator* if needed). It:
+
+1. Downloads EC-Access-Tool + driver, verifies SHA256
+2. Installs the driver as an auto-start service (RwDrv preferred, WinRing0 fallback)
+3. Adds a Defender exclusion for `C:\EC-Tool`
+4. Registers a scheduled task to launch the daemon at logon
+5. Tests register readback, then launches the tray daemon
+
+If Defender flags the driver, click **Allow on device** — it's the standard WinRing0 driver used by CrystalDiskMark (details above).
+
+---
+
 ## Step 2: Install the Driver
 
 The tool supports two drivers. Pick one:

@@ -38,7 +38,7 @@ Daemon monitors battery % every N seconds
 
 | Platform | Guide | One-click setup |
 |----------|-------|----------------|
-| **Windows** | [windows/GUIDE.md](windows/GUIDE.md) | `powershell -File windows\setup.ps1` (Admin) |
+| **Windows** | [windows/GUIDE.md](windows/GUIDE.md) | `windows\setup.bat` (double-click) |
 | **Arch Linux** | [arch/GUIDE.md](arch/GUIDE.md) | `sudo bash arch/setup.sh` |
 | **Arch (AUR)** | [arch/GUIDE.md](arch/GUIDE.md) | `yay -S battery-charge-limiter` |
 
@@ -50,7 +50,8 @@ Daemon monitors battery % every N seconds
 Battery-Charge-Limiter/
 ├── windows/           # Windows: PowerShell daemon, tray icons, setup
 │   ├── daemon.ps1     # System tray daemon (3s poll, GUI icons)
-│   ├── setup.ps1      # One-click installer
+│   ├── setup.ps1      # One-click installer (driver, service, task)
+│   ├── setup.bat      # Double-click launcher for setup.ps1
 │   ├── detect-ec.ps1  # EC register scanner
 │   └── GUIDE.md       # Step-by-step tutorial
 │
