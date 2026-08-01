@@ -20,7 +20,7 @@ WizardImageFile=theme\wizard.png
 WizardSmallImageFile=theme\small.png
 UninstallDisplayIcon={app}\green.ico
 ArchitecturesInstallIn64BitMode=x64compatible
-SetupIconFile=..\icons\green.ico
+SetupIconFile=..\icons\app.ico
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
