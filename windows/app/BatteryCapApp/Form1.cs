@@ -3,17 +3,21 @@ namespace BatteryCapApp;
 public partial class Form1 : Form
 {
     private readonly System.Windows.Forms.Timer _timer;
-    private readonly Label _batteryLabel;
     private readonly Label _batteryPct;
     private readonly Panel _ring;
     private readonly Label _healthValue;
     private readonly Label _ecValue;
+    private readonly Label _ecMode;
     private readonly Label _acValue;
+    private readonly Label _cycleValue;
+    private readonly Label _fullValue;
+    private readonly Label _designValue;
+    private readonly Label _runtimeValue;
     private readonly Label _daemonValue;
+    private readonly Label _statusPill;
     private readonly Button _installBtn;
     private readonly Button _uninstallBtn;
     private readonly Button _daemonBtn;
-    private readonly Label _statusPill;
 
     private const string EcTool = @"C:\EC-Tool\EC-Access-Tool.exe";
     private const string DaemonPath = @"C:\EC-Tool\daemon.ps1";
@@ -21,7 +25,7 @@ public partial class Form1 : Form
     public Form1()
     {
         Text = "Battery Charge Limiter";
-        ClientSize = new Size(420, 560);
+        ClientSize = new Size(430, 600);
         FormBorderStyle = FormBorderStyle.FixedSingle;
         MaximizeBox = false;
         StartPosition = FormStartPosition.CenterScreen;
@@ -34,7 +38,7 @@ public partial class Form1 : Form
             Font = new Font("Segoe UI", 15, FontStyle.Bold),
             ForeColor = Color.FromArgb(80, 200, 120),
             AutoSize = true,
-            Location = new Point(28, 24)
+            Location = new Point(28, 20)
         };
 
         _statusPill = new Label
@@ -42,9 +46,9 @@ public partial class Form1 : Form
             AutoSize = true,
             Font = new Font("Segoe UI", 9, FontStyle.Bold),
             Padding = new Padding(10, 4, 10, 4),
-            Location = new Point(28, 58)
+            Location = new Point(28, 54)
         };
-        SetPill("AUTO", Color.FromArgb(30, 40, 32), Color.FromArgb(80, 200, 120));
+        SetPill("—", Color.FromArgb(30, 40, 32), Color.FromArgb(80, 200, 120));
 
         var sub = new Label
         {
@@ -52,53 +56,65 @@ public partial class Form1 : Form
             ForeColor = Color.FromArgb(140, 150, 160),
             Font = new Font("Segoe UI", 9),
             AutoSize = true,
-            Location = new Point(28, 90)
+            Location = new Point(28, 86)
         };
 
-        _batteryLabel = new Label
-        {
-            Text = "BATTERY",
-            ForeColor = Color.FromArgb(140, 150, 160),
-            Font = new Font("Segoe UI", 10, FontStyle.Bold),
-            AutoSize = true,
-            Location = new Point(28, 130)
-        };
         _batteryPct = new Label
         {
             Text = "--%",
-            Font = new Font("Segoe UI", 42, FontStyle.Bold),
+            Font = new Font("Segoe UI", 40, FontStyle.Bold),
             ForeColor = Color.FromArgb(230, 235, 240),
             AutoSize = true,
-            Location = new Point(28, 145)
+            Location = new Point(32, 125)
+        };
+
+        var batterySub = new Label
+        {
+            Text = "BATTERY",
+            ForeColor = Color.FromArgb(140, 150, 160),
+            Font = new Font("Segoe UI", 9, FontStyle.Bold),
+            AutoSize = true,
+            Location = new Point(32, 180)
         };
 
         _ring = new Panel
         {
-            Size = new Size(130, 130),
-            Location = new Point(250, 120)
+            Size = new Size(120, 120),
+            Location = new Point(250, 110)
         };
         _ring.Paint += RingPaint;
 
-        var healthCard = MakeCard("HEALTH", 30, 300);
+        var healthCard = MakeCard("HEALTH", 30, 290);
         _healthValue = MakeCardValue(healthCard, "--");
 
-        var ecCard = MakeCard("EC REGISTER", 150, 300);
+        var ecCard = MakeCard("EC REG", 150, 290);
         _ecValue = MakeCardValue(ecCard, "--");
+        _ecMode = MakeCardSub(ecCard, "");
 
-        var acCard = MakeCard("POWER", 270, 300);
+        var acCard = MakeCard("POWER", 270, 290);
         _acValue = MakeCardValue(acCard, "--");
 
-        var daemonCard = MakeCard("DAEMON", 30, 390);
-        _daemonValue = MakeCardValue(daemonCard, "--");
+        var cycleCard = MakeCard("CYCLES", 30, 380);
+        _cycleValue = MakeCardValue(cycleCard, "--");
 
-        _installBtn = MakeButton("Install", 30, 470, Color.FromArgb(80, 200, 120));
-        _uninstallBtn = MakeButton("Uninstall", 155, 470, Color.FromArgb(220, 90, 90));
-        _daemonBtn = MakeButton("Daemon", 280, 470, Color.FromArgb(70, 110, 180));
+        var fullCard = MakeCard("FULL CAP", 150, 380);
+        _fullValue = MakeCardValue(fullCard, "--");
+
+        var designCard = MakeCard("DESIGN", 270, 380);
+        _designValue = MakeCardValue(designCard, "--");
+
+        var daemonCard = MakeCard("DAEMON", 30, 470);
+        _daemonValue = MakeCardValue(daemonCard, "--");
+        _runtimeValue = MakeCardSub(daemonCard, "");
+
+        _installBtn = MakeButton("Install", 30, 550, Color.FromArgb(80, 200, 120));
+        _uninstallBtn = MakeButton("Uninstall", 155, 550, Color.FromArgb(220, 90, 90));
+        _daemonBtn = MakeButton("Daemon", 280, 550, Color.FromArgb(70, 110, 180));
 
         Controls.AddRange(new Control[]
         {
-            header, _statusPill, sub, _batteryLabel, _batteryPct, _ring,
-            healthCard, ecCard, acCard, daemonCard,
+            header, _statusPill, sub, _batteryPct, batterySub, _ring,
+            healthCard, ecCard, acCard, cycleCard, fullCard, designCard, daemonCard,
             _installBtn, _uninstallBtn, _daemonBtn
         });
 
@@ -147,7 +163,21 @@ public partial class Form1 : Form
             Font = new Font("Segoe UI", 14, FontStyle.Bold),
             ForeColor = Color.FromArgb(230, 235, 240),
             AutoSize = true,
-            Location = new Point(12, 34)
+            Location = new Point(12, 32)
+        };
+        card.Controls.Add(v);
+        return v;
+    }
+
+    private Label MakeCardSub(Panel card, string initial)
+    {
+        var v = new Label
+        {
+            Text = initial,
+            Font = new Font("Segoe UI", 8),
+            ForeColor = Color.FromArgb(150, 160, 170),
+            AutoSize = true,
+            Location = new Point(12, 54)
         };
         card.Controls.Add(v);
         return v;
@@ -176,7 +206,7 @@ public partial class Form1 : Form
         if (!int.TryParse(_batteryPct.Text.Replace("%", ""), out pct)) pct = 0;
         pct = Math.Clamp(pct, 0, 100);
 
-        var rect = new Rectangle(5, 5, 120, 120);
+        var rect = new Rectangle(5, 5, 110, 110);
         using var track = new Pen(Color.FromArgb(40, 46, 54), 10);
         e.Graphics.SmoothingMode = System.Drawing.Drawing2D.SmoothingMode.AntiAlias;
         e.Graphics.DrawArc(track, rect, 0, 360);
@@ -187,7 +217,7 @@ public partial class Form1 : Form
 
         var text = $"{pct}%";
         using var sf = new StringFormat { Alignment = StringAlignment.Center, LineAlignment = StringAlignment.Center };
-        using var font = new Font("Segoe UI", 20, FontStyle.Bold);
+        using var font = new Font("Segoe UI", 18, FontStyle.Bold);
         using var brush = new SolidBrush(Color.FromArgb(230, 235, 240));
         e.Graphics.DrawString(text, font, brush, rect, sf);
     }
@@ -196,11 +226,27 @@ public partial class Form1 : Form
     {
         try
         {
-            var battery = GetBatteryInfo();
-            _batteryPct.Text = $"{battery.Charge}%";
-            _healthValue.Text = battery.Health >= 0 ? $"{battery.Health}%" : "n/a";
-            _acValue.Text = battery.OnAc ? "AC" : "Battery";
+            var b = GetBatteryInfo();
+            if (b.Charge >= 0) _batteryPct.Text = $"{b.Charge}%";
             _ring.Invalidate();
+
+            _healthValue.Text = b.Health >= 0 ? $"{b.Health}%" : "n/a";
+            _cycleValue.Text = b.Cycles >= 0 ? $"{b.Cycles}" : "n/a";
+            _fullValue.Text = b.FullWh >= 0 ? $"{b.FullWh}Wh" : "n/a";
+            _designValue.Text = b.DesignWh >= 0 ? $"{b.DesignWh}Wh" : "n/a";
+
+            if (b.OnAc)
+            {
+                _acValue.Text = "AC";
+                _acValue.ForeColor = Color.FromArgb(80, 200, 120);
+                _runtimeValue.Text = "plugged in";
+            }
+            else
+            {
+                _acValue.Text = "Battery";
+                _acValue.ForeColor = Color.FromArgb(230, 180, 60);
+                _runtimeValue.Text = b.RuntimeMin >= 0 ? $"{b.RuntimeMin} min left" : "—";
+            }
 
             string ec = "n/a";
             if (File.Exists(EcTool))
@@ -221,11 +267,18 @@ public partial class Form1 : Form
                 catch { }
             }
             _ecValue.Text = ec;
+            bool inhibited = ec.EndsWith("c5", StringComparison.OrdinalIgnoreCase) || ec.EndsWith("45", StringComparison.OrdinalIgnoreCase);
+            _ecMode.Text = inhibited ? "INHIBIT" : "AUTO";
+            _ecMode.ForeColor = inhibited ? Color.FromArgb(220, 90, 90) : Color.FromArgb(80, 200, 120);
 
             bool daemonRunning = File.Exists(DaemonPath) && DaemonAlive();
             _daemonValue.Text = daemonRunning ? "Running" : "Stopped";
             _daemonValue.ForeColor = daemonRunning ? Color.FromArgb(80, 200, 120) : Color.FromArgb(220, 120, 90);
             _daemonBtn.Text = daemonRunning ? "Stop" : "Start";
+
+            SetPill(inhibited ? "INHIBITED" : "AUTO (charging limit 80%)",
+                inhibited ? Color.FromArgb(45, 25, 25) : Color.FromArgb(30, 40, 32),
+                inhibited ? Color.FromArgb(220, 90, 90) : Color.FromArgb(80, 200, 120));
         }
         catch { }
     }
@@ -250,16 +303,16 @@ public partial class Form1 : Form
         catch { return false; }
     }
 
-    private (int Charge, int Health, bool OnAc) GetBatteryInfo()
+    private (int Charge, int Health, int Cycles, int FullWh, int DesignWh, int RuntimeMin, bool OnAc) GetBatteryInfo()
     {
-        int charge = -1, health = -1;
+        int charge = -1, health = -1, cycles = -1, fullWh = -1, designWh = -1, runtimeMin = -1;
         bool onAc = false;
         try
         {
             var psi = new System.Diagnostics.ProcessStartInfo
             {
                 FileName = "powershell.exe",
-                Arguments = "-NoProfile -Command \"$b=Get-CimInstance Win32_Battery; $d=(Get-CimInstance Win32_PortableBattery -ErrorAction SilentlyContinue).DesignCapacity; $f=(Get-CimInstance -Namespace root/wmi -ClassName BatteryFullChargedCapacity -ErrorAction SilentlyContinue).FullChargedCapacity; $h=-1; if($d -and $f){$h=[math]::Round(($f/$d)*100)}; '{0}|{1}|{2}' -f $b.EstimatedChargeRemaining,$h,$([System.Windows.Forms.SystemInformation]::PowerStatus.PowerLineStatus)\"",
+                Arguments = "-NoProfile -Command \"Add-Type -AssemblyName Microsoft.VisualBasic; $b=Get-CimInstance Win32_Battery; $d=(Get-CimInstance Win32_PortableBattery -ErrorAction SilentlyContinue).DesignCapacity; $f=(Get-CimInstance -Namespace root/wmi -ClassName BatteryFullChargedCapacity -ErrorAction SilentlyContinue).FullChargedCapacity; $c=(Get-CimInstance -Namespace root/wmi -ClassName BatteryCycleCount -ErrorAction SilentlyContinue).CycleCount; $r=(Get-CimInstance Win32_Battery).EstimatedRunTime; $ac=0; if($b.BatteryStatus -eq 2){$ac=1}; $v=11340; $h=-1; if($d -and $f){$h=[math]::Round(($f/$d)*100)}; '{0}|{1}|{2}|{3}|{4}|{5}|{6}' -f $b.EstimatedChargeRemaining,$h,$c,[math]::Round($f/1000,1),[math]::Round($d/1000,1),$r,$ac\"",
                 RedirectStandardOutput = true,
                 UseShellExecute = false,
                 CreateNoWindow = true
@@ -268,15 +321,21 @@ public partial class Form1 : Form
             var line = proc.StandardOutput.ReadToEnd().Trim();
             proc.WaitForExit();
             var parts = line.Split('|');
-            if (parts.Length == 3)
+            if (parts.Length == 7)
             {
                 int.TryParse(parts[0], out charge);
                 int.TryParse(parts[1], out health);
-                onAc = parts[2] == "1" || parts[2] == "2";
+                int.TryParse(parts[2], out cycles);
+                double.TryParse(parts[3], System.Globalization.CultureInfo.InvariantCulture, out double fullD);
+                double.TryParse(parts[4], System.Globalization.CultureInfo.InvariantCulture, out double designD);
+                fullWh = (int)Math.Round(fullD);
+                designWh = (int)Math.Round(designD);
+                int.TryParse(parts[5], out runtimeMin);
+                onAc = parts[6] == "1";
             }
         }
         catch { }
-        return (charge, health, onAc);
+        return (charge, health, cycles, fullWh, designWh, runtimeMin, onAc);
     }
 
     private void RunElevated(string arg)
@@ -312,7 +371,7 @@ public partial class Form1 : Form
             System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
                 FileName = "powershell.exe",
-                Arguments = $"-STA -WindowStyle Hidden -ExecutionPolicy Bypass -File {DaemonPath}",
+                Arguments = $"-STA -WindowStyle Hidden -ExecutionPolicy Bypass -File \"{DaemonPath}\"",
                 WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden,
                 UseShellExecute = true
             });
