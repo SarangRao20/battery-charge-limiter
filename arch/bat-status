@@ -33,11 +33,21 @@ if [[ "$cycles" != "N/A" ]]; then
     printf "  %-10s : %s\n" "Cycles" "$cycles"
 fi
 
-# Charge mode: daemon inhibits at stop threshold
+# Charge mode: daemon enforces a START%-STOP% window (configurable in /etc/battery-charge-limiter.conf)
+start=$(awk -F= '/^START_THRESHOLD/{gsub(/ /,""); print $2}' /etc/battery-charge-limiter.conf)
+stop=$(awk -F= '/^STOP_THRESHOLD/{gsub(/ /,""); print $2}' /etc/battery-charge-limiter.conf)
+start=${start:-75}
+stop=${stop:-80}
+
 if systemctl is-active --quiet battery-charge-limiter 2>/dev/null; then
-    printf "  %-10s : INHIBITED (daemon active)\n" "Mode"
-elif [[ "$status" == "Not charging" || "$status" == "Full" ]]; then
-    printf "  %-10s : not charging\n" "Mode"
+    if [[ "$status" == "Charging" ]]; then
+        printf "  %-10s : charging (%s-%s%% window)\n" "Mode" "$start" "$stop"
+    else
+        printf "  %-10s : INHIBITED by daemon\n" "Mode"
+    fi
 else
-    printf "  %-10s : charging allowed\n" "Mode"
+    case "$status" in
+        Not\ charging|Full) printf "  %-10s : not charging (daemon off)\n" "Mode" ;;
+        *)                  printf "  %-10s : charging (daemon off)\n" "Mode" ;;
+    esac
 fi
