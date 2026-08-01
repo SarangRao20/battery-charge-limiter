@@ -3,7 +3,8 @@
 $taskName = "Battery80Cap"
 $svcName = "WinRing0_1_2_0"
 
-# Stop daemon
+# Stop app/daemon
+Get-Process BatteryCapApp -ErrorAction SilentlyContinue | Stop-Process -Force -ErrorAction SilentlyContinue
 Get-CimInstance Win32_Process -Filter "Name='powershell.exe'" -ErrorAction SilentlyContinue |
     Where-Object { $_.CommandLine -like '*daemon.ps1*' } |
     ForEach-Object { Stop-Process -Id $_.ProcessId -Force -ErrorAction SilentlyContinue }

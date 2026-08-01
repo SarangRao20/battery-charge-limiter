@@ -32,11 +32,11 @@ if (Start-DriverService $svcName) {
     }
 }
 
-# 2. Register scheduled task (AtLogon, highest, survives battery)
+# 2. Register scheduled task (AtLogon, highest, survives battery) -> runs app in tray
 $task = Get-ScheduledTask -TaskName $taskName -ErrorAction SilentlyContinue
 if ($task) { Unregister-ScheduledTask -TaskName $taskName -Confirm:$false }
-$action = New-ScheduledTaskAction -Execute "powershell.exe" `
-    -Argument "-STA -WindowStyle Hidden -ExecutionPolicy Bypass -File $dest\daemon.ps1"
+$action = New-ScheduledTaskAction -Execute "$dest\BatteryCapApp.exe" `
+    -Argument "-tray"
 $triggers = @( (New-ScheduledTaskTrigger -AtLogon -User $env:USERNAME) )
 $settings = New-ScheduledTaskSettingsSet -AllowStartIfOnBatteries -DontStopIfGoingOnBatteries
 Register-ScheduledTask -TaskName $taskName -Action $action -Trigger $triggers `
@@ -51,5 +51,5 @@ if ($test -match "0x[0-9a-f]+") {
     exit 1
 }
 
-# 4. Launch daemon in system tray
-Start-Process powershell -ArgumentList "-STA -WindowStyle Hidden -ExecutionPolicy Bypass -File $dest\daemon.ps1" -WindowStyle Hidden
+# 4. Launch app in system tray (dashboard shows, runs in background)
+Start-Process "$dest\BatteryCapApp.exe"

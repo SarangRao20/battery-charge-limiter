@@ -1,3 +1,5 @@
+using System.Threading;
+
 namespace BatteryCapApp;
 
 public partial class Form1 : Form
@@ -15,13 +17,24 @@ public partial class Form1 : Form
     private readonly Label _runtimeValue;
     private readonly Label _daemonValue;
     private readonly Label _statusPill;
-    private readonly Button _daemonBtn;
+    private readonly NotifyIcon _tray;
+    private readonly ToolStripMenuItem _bypassItem;
 
     private const string EcTool = @"C:\EC-Tool\EC-Access-Tool.exe";
-    private const string DaemonPath = @"C:\EC-Tool\daemon.ps1";
+    private const int StopAt = 80;
 
-    public Form1()
+    private readonly bool _startInTray;
+    private bool _exiting;
+    private bool _bypassed;
+    private bool _inhibited;
+    private bool _wroteAuto;
+    private Icon _greenIcon = null!;
+    private Icon _redIcon = null!;
+    private Icon _grayIcon = null!;
+
+    public Form1(bool startInTray)
     {
+        _startInTray = startInTray;
         Text = "Battery Charge Limiter";
         ClientSize = new Size(460, 600);
         FormBorderStyle = FormBorderStyle.FixedSingle;
@@ -29,6 +42,8 @@ public partial class Form1 : Form
         StartPosition = FormStartPosition.CenterScreen;
         BackColor = Color.FromArgb(18, 20, 24);
         ForeColor = Color.FromArgb(230, 235, 240);
+
+        LoadIcons();
 
         var header = new Label
         {
@@ -105,21 +120,88 @@ public partial class Form1 : Form
         _daemonValue = MakeCardValue(daemonCard, "--");
         _runtimeValue = MakeCardSub(daemonCard, "");
 
-        _daemonBtn = MakeButton("Daemon", 170, 550, Color.FromArgb(70, 110, 180));
-
         Controls.AddRange(new Control[]
         {
             header, _statusPill, sub, _batteryPct, batterySub, _ring,
-            healthCard, ecCard, acCard, cycleCard, fullCard, designCard, daemonCard,
-            _daemonBtn
+            healthCard, ecCard, acCard, cycleCard, fullCard, designCard, daemonCard
         });
 
-        _daemonBtn.Click += async (_, _) => await ToggleDaemonAsync();
+        _tray = new NotifyIcon
+        {
+            Icon = _greenIcon,
+            Text = $"Battery Cap {StopAt}%",
+            Visible = true
+        };
+        var menu = new ContextMenuStrip();
+        var openItem = new ToolStripMenuItem("Open Dashboard");
+        _bypassItem = new ToolStripMenuItem("Bypass - Full Charge");
+        var exitItem = new ToolStripMenuItem("Exit");
+        menu.Items.AddRange(new ToolStripItem[] { openItem, _bypassItem, new ToolStripSeparator(), exitItem });
+        _tray.ContextMenuStrip = menu;
+
+        openItem.Click += (_, _) => ShowFromTray();
+        _bypassItem.Click += (_, _) => ToggleBypass();
+        exitItem.Click += (_, _) => ExitApp();
+        _tray.DoubleClick += (_, _) => ShowFromTray();
+
+        FormClosing += (_, e) =>
+        {
+            if (!_exiting && _tray.Visible)
+            {
+                e.Cancel = true;
+                Hide();
+                _tray.ShowBalloonTip(1500, "Battery Charge Limiter", "Still running in system tray", ToolTipIcon.Info);
+            }
+        };
+
+        Shown += (_, _) => { if (_startInTray) Hide(); };
 
         _timer = new System.Windows.Forms.Timer { Interval = 3000 };
         _timer.Tick += async (_, _) => await RefreshStatusAsync();
         _timer.Start();
         _ = RefreshStatusAsync();
+    }
+
+    public void ShowFromTray()
+    {
+        Show();
+        WindowState = FormWindowState.Normal;
+        Activate();
+    }
+
+    private void LoadIcons()
+    {
+        try
+        {
+            _greenIcon = new Icon(@"C:\EC-Tool\green.ico");
+            _redIcon = new Icon(@"C:\EC-Tool\red.ico");
+            _grayIcon = new Icon(@"C:\EC-Tool\gray.ico");
+        }
+        catch
+        {
+            _greenIcon = SystemIcons.Shield;
+            _redIcon = SystemIcons.Hand;
+            _grayIcon = SystemIcons.Shield;
+        }
+    }
+
+    private void ToggleBypass()
+    {
+        _bypassed = !_bypassed;
+        _bypassItem.Text = _bypassed ? "Cancel Bypass" : "Bypass - Full Charge";
+        if (_bypassed) WriteEc("40");
+        _tray.ShowBalloonTip(2500, "Battery Cap",
+            _bypassed ? "Bypass enabled - will charge to 100%" : "Protection enabled (stop at 80%)",
+            _bypassed ? ToolTipIcon.Info : ToolTipIcon.Info);
+        _ = RefreshStatusAsync();
+    }
+
+    private void ExitApp()
+    {
+        _exiting = true;
+        _tray.Visible = false;
+        _tray.Dispose();
+        Application.Exit();
     }
 
     private void SetPill(string text, Color bg, Color fg)
@@ -183,23 +265,6 @@ public partial class Form1 : Form
         return v;
     }
 
-    private Button MakeButton(string text, int x, int y, Color accent)
-    {
-        var b = new Button
-        {
-            Text = text,
-            Size = new Size(120, 38),
-            Location = new Point(x, y),
-            FlatStyle = FlatStyle.Flat,
-            BackColor = accent,
-            ForeColor = Color.FromArgb(20, 22, 26),
-            Font = new Font("Segoe UI", 10, FontStyle.Bold),
-            Cursor = Cursors.Hand
-        };
-        b.FlatAppearance.BorderSize = 0;
-        return b;
-    }
-
     private void RingPaint(object? sender, PaintEventArgs e)
     {
         int pct;
@@ -226,7 +291,7 @@ public partial class Form1 : Form
     {
         try
         {
-            var (charge, health, cycles, fullWh, designWh, runtimeMin, onAc, ec, daemonRunning) =
+            var (charge, health, cycles, fullWh, designWh, runtimeMin, onAc, ec) =
                 await Task.Run(() =>
                 {
                     var b = GetBatteryInfo();
@@ -248,8 +313,7 @@ public partial class Form1 : Form
                         }
                         catch { }
                     }
-                    bool daemonRunning = File.Exists(DaemonPath) && DaemonAlive();
-                    return (b.Charge, b.Health, b.Cycles, b.FullWh, b.DesignWh, b.RuntimeMin, b.OnAc, ec, daemonRunning);
+                    return (b.Charge, b.Health, b.Cycles, b.FullWh, b.DesignWh, b.RuntimeMin, b.OnAc, ec);
                 });
 
             if (charge >= 0) _batteryPct.Text = $"{charge}%";
@@ -278,36 +342,62 @@ public partial class Form1 : Form
             _ecMode.Text = inhibited ? "INHIBIT" : "AUTO";
             _ecMode.ForeColor = inhibited ? Color.FromArgb(220, 90, 90) : Color.FromArgb(80, 200, 120);
 
-            _daemonValue.Text = daemonRunning ? "Running" : "Stopped";
-            _daemonValue.ForeColor = daemonRunning ? Color.FromArgb(80, 200, 120) : Color.FromArgb(220, 120, 90);
-            _daemonBtn.Text = daemonRunning ? "Stop" : "Start";
-            _daemonBtn.Enabled = true;
+            _daemonValue.Text = "Active";
+            _daemonValue.ForeColor = Color.FromArgb(80, 200, 120);
 
-            SetPill(inhibited ? "INHIBITED" : "AUTO (charging limit 80%)",
-                inhibited ? Color.FromArgb(45, 25, 25) : Color.FromArgb(30, 40, 32),
-                inhibited ? Color.FromArgb(220, 90, 90) : Color.FromArgb(80, 200, 120));
+            if (_bypassed)
+            {
+                if (!_wroteAuto) { WriteEc("40"); _wroteAuto = true; }
+                _tray.Icon = _greenIcon;
+            }
+            else if (!onAc)
+            {
+                _tray.Icon = _grayIcon;
+                _inhibited = false;
+                _wroteAuto = false;
+            }
+            else if (charge >= StopAt)
+            {
+                if (!_inhibited)
+                {
+                    WriteEc("45");
+                    _inhibited = true;
+                    _wroteAuto = false;
+                    _tray.ShowBalloonTip(2500, "Battery Cap", $"Charging stopped at {charge}%", ToolTipIcon.Warning);
+                }
+                _tray.Icon = _redIcon;
+            }
+            else
+            {
+                if (inhibited || !_wroteAuto)
+                {
+                    WriteEc("40");
+                    _wroteAuto = true;
+                }
+                _inhibited = false;
+                _tray.Icon = _greenIcon;
+            }
+
+            SetPill(_bypassed ? "BYPASS (charging to 100%)" : inhibited ? "INHIBITED" : "AUTO (charging limit 80%)",
+                _bypassed ? Color.FromArgb(45, 45, 25) : inhibited ? Color.FromArgb(45, 25, 25) : Color.FromArgb(30, 40, 32),
+                _bypassed ? Color.FromArgb(230, 180, 60) : inhibited ? Color.FromArgb(220, 90, 90) : Color.FromArgb(80, 200, 120));
         }
         catch { }
     }
 
-    private bool DaemonAlive()
+    private void WriteEc(string val)
     {
         try
         {
-            var psi = new System.Diagnostics.ProcessStartInfo
+            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
             {
-                FileName = "powershell.exe",
-                Arguments = "-NoProfile -Command \"[bool](Get-CimInstance Win32_Process -Filter \\\"Name='powershell.exe'\\\" | Where-Object { $_.CommandLine -like '*daemon.ps1*' })\"",
-                RedirectStandardOutput = true,
+                FileName = EcTool,
+                Arguments = $"-winring0 -w 76 {val}",
                 UseShellExecute = false,
                 CreateNoWindow = true
-            };
-            var proc = System.Diagnostics.Process.Start(psi)!;
-            var line = proc.StandardOutput.ReadToEnd().Trim();
-            proc.WaitForExit();
-            return line.StartsWith("True");
+            });
         }
-        catch { return false; }
+        catch { }
     }
 
     private (int Charge, int Health, int Cycles, int FullWh, int DesignWh, int RuntimeMin, bool OnAc) GetBatteryInfo()
@@ -343,36 +433,5 @@ public partial class Form1 : Form
         }
         catch { }
         return (charge, health, cycles, fullWh, designWh, runtimeMin, onAc);
-    }
-
-    private async Task ToggleDaemonAsync()
-    {
-        _daemonBtn.Enabled = false;
-        try
-        {
-            if (_daemonValue.Text == "Running")
-            {
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = "powershell.exe",
-                    Arguments = "-NoProfile -Command \"Get-CimInstance Win32_Process | Where-Object {$_.CommandLine -like '*daemon.ps1*'} | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }\"",
-                    UseShellExecute = false,
-                    CreateNoWindow = true
-                });
-            }
-            else
-            {
-                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                {
-                    FileName = "powershell.exe",
-                    Arguments = $"-STA -WindowStyle Hidden -ExecutionPolicy Bypass -File \"{DaemonPath}\"",
-                    WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden,
-                    UseShellExecute = true
-                });
-            }
-        }
-        catch { }
-        await Task.Delay(1200);
-        await RefreshStatusAsync();
     }
 }
