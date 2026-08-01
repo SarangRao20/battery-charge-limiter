@@ -114,12 +114,12 @@ public partial class Form1 : Form
             _daemonBtn
         });
 
-        _daemonBtn.Click += (_, _) => ToggleDaemon();
+        _daemonBtn.Click += async (_, _) => await ToggleDaemonAsync();
 
         _timer = new System.Windows.Forms.Timer { Interval = 3000 };
-        _timer.Tick += (_, _) => RefreshStatus();
+        _timer.Tick += async (_, _) => await RefreshStatusAsync();
         _timer.Start();
-        RefreshStatus();
+        _ = RefreshStatusAsync();
     }
 
     private void SetPill(string text, Color bg, Color fg)
@@ -222,20 +222,45 @@ public partial class Form1 : Form
         e.Graphics.DrawString(text, font, brush, rect, sf);
     }
 
-    private void RefreshStatus()
+    private async Task RefreshStatusAsync()
     {
         try
         {
-            var b = GetBatteryInfo();
-            if (b.Charge >= 0) _batteryPct.Text = $"{b.Charge}%";
+            var (charge, health, cycles, fullWh, designWh, runtimeMin, onAc, ec, daemonRunning) =
+                await Task.Run(() =>
+                {
+                    var b = GetBatteryInfo();
+                    string ec = "n/a";
+                    if (File.Exists(EcTool))
+                    {
+                        try
+                        {
+                            var proc = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                            {
+                                FileName = EcTool,
+                                Arguments = "-winring0 -r 76",
+                                RedirectStandardOutput = true,
+                                UseShellExecute = false,
+                                CreateNoWindow = true
+                            })!;
+                            ec = proc.StandardOutput.ReadToEnd().Trim();
+                            proc.WaitForExit();
+                        }
+                        catch { }
+                    }
+                    bool daemonRunning = File.Exists(DaemonPath) && DaemonAlive();
+                    return (b.Charge, b.Health, b.Cycles, b.FullWh, b.DesignWh, b.RuntimeMin, b.OnAc, ec, daemonRunning);
+                });
+
+            if (charge >= 0) _batteryPct.Text = $"{charge}%";
             _ring.Invalidate();
 
-            _healthValue.Text = b.Health >= 0 ? $"{b.Health}%" : "n/a";
-            _cycleValue.Text = b.Cycles >= 0 ? $"{b.Cycles}" : "n/a";
-            _fullValue.Text = b.FullWh >= 0 ? $"{b.FullWh}Wh" : "n/a";
-            _designValue.Text = b.DesignWh >= 0 ? $"{b.DesignWh}Wh" : "n/a";
+            _healthValue.Text = health >= 0 ? $"{health}%" : "n/a";
+            _cycleValue.Text = cycles >= 0 ? $"{cycles}" : "n/a";
+            _fullValue.Text = fullWh >= 0 ? $"{fullWh}Wh" : "n/a";
+            _designValue.Text = designWh >= 0 ? $"{designWh}Wh" : "n/a";
 
-            if (b.OnAc)
+            if (onAc)
             {
                 _acValue.Text = "AC";
                 _acValue.ForeColor = Color.FromArgb(80, 200, 120);
@@ -245,36 +270,18 @@ public partial class Form1 : Form
             {
                 _acValue.Text = "Battery";
                 _acValue.ForeColor = Color.FromArgb(230, 180, 60);
-                _runtimeValue.Text = b.RuntimeMin >= 0 ? $"{b.RuntimeMin} min left" : "—";
+                _runtimeValue.Text = runtimeMin >= 0 ? $"{runtimeMin} min left" : "—";
             }
 
-            string ec = "n/a";
-            if (File.Exists(EcTool))
-            {
-                try
-                {
-                    var proc = System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-                    {
-                        FileName = EcTool,
-                        Arguments = "-winring0 -r 76",
-                        RedirectStandardOutput = true,
-                        UseShellExecute = false,
-                        CreateNoWindow = true
-                    })!;
-                    ec = proc.StandardOutput.ReadToEnd().Trim();
-                    proc.WaitForExit();
-                }
-                catch { }
-            }
             _ecValue.Text = ec;
             bool inhibited = ec.EndsWith("c5", StringComparison.OrdinalIgnoreCase) || ec.EndsWith("45", StringComparison.OrdinalIgnoreCase);
             _ecMode.Text = inhibited ? "INHIBIT" : "AUTO";
             _ecMode.ForeColor = inhibited ? Color.FromArgb(220, 90, 90) : Color.FromArgb(80, 200, 120);
 
-            bool daemonRunning = File.Exists(DaemonPath) && DaemonAlive();
             _daemonValue.Text = daemonRunning ? "Running" : "Stopped";
             _daemonValue.ForeColor = daemonRunning ? Color.FromArgb(80, 200, 120) : Color.FromArgb(220, 120, 90);
             _daemonBtn.Text = daemonRunning ? "Stop" : "Start";
+            _daemonBtn.Enabled = true;
 
             SetPill(inhibited ? "INHIBITED" : "AUTO (charging limit 80%)",
                 inhibited ? Color.FromArgb(45, 25, 25) : Color.FromArgb(30, 40, 32),
@@ -338,29 +345,34 @@ public partial class Form1 : Form
         return (charge, health, cycles, fullWh, designWh, runtimeMin, onAc);
     }
 
-    private void ToggleDaemon()
+    private async Task ToggleDaemonAsync()
     {
-        if (_daemonValue.Text == "Running")
+        _daemonBtn.Enabled = false;
+        try
         {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+            if (_daemonValue.Text == "Running")
             {
-                FileName = "powershell.exe",
-                Arguments = "-NoProfile -Command \"Get-CimInstance Win32_Process | Where-Object {$_.CommandLine -like '*daemon.ps1*'} | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }\"",
-                UseShellExecute = false,
-                CreateNoWindow = true
-            });
-        }
-        else
-        {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments = "-NoProfile -Command \"Get-CimInstance Win32_Process | Where-Object {$_.CommandLine -like '*daemon.ps1*'} | ForEach-Object { Stop-Process -Id $_.ProcessId -Force }\"",
+                    UseShellExecute = false,
+                    CreateNoWindow = true
+                });
+            }
+            else
             {
-                FileName = "powershell.exe",
-                Arguments = $"-STA -WindowStyle Hidden -ExecutionPolicy Bypass -File \"{DaemonPath}\"",
-                WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden,
-                UseShellExecute = true
-            });
+                System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
+                {
+                    FileName = "powershell.exe",
+                    Arguments = $"-STA -WindowStyle Hidden -ExecutionPolicy Bypass -File \"{DaemonPath}\"",
+                    WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden,
+                    UseShellExecute = true
+                });
+            }
         }
-        Thread.Sleep(1000);
-        RefreshStatus();
+        catch { }
+        await Task.Delay(1200);
+        await RefreshStatusAsync();
     }
 }
