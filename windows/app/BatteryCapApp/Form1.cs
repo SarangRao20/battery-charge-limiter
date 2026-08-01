@@ -25,7 +25,7 @@ public partial class Form1 : Form
     public Form1()
     {
         Text = "Battery Charge Limiter";
-        ClientSize = new Size(430, 600);
+        ClientSize = new Size(460, 600);
         FormBorderStyle = FormBorderStyle.FixedSingle;
         MaximizeBox = false;
         StartPosition = FormStartPosition.CenterScreen;
@@ -87,20 +87,20 @@ public partial class Form1 : Form
         var healthCard = MakeCard("HEALTH", 30, 290);
         _healthValue = MakeCardValue(healthCard, "--");
 
-        var ecCard = MakeCard("EC REG", 150, 290);
+        var ecCard = MakeCard("EC REG", 170, 290);
         _ecValue = MakeCardValue(ecCard, "--");
         _ecMode = MakeCardSub(ecCard, "");
 
-        var acCard = MakeCard("POWER", 270, 290);
+        var acCard = MakeCard("POWER", 310, 290);
         _acValue = MakeCardValue(acCard, "--");
 
         var cycleCard = MakeCard("CYCLES", 30, 380);
         _cycleValue = MakeCardValue(cycleCard, "--");
 
-        var fullCard = MakeCard("FULL CAP", 150, 380);
+        var fullCard = MakeCard("FULL CAP", 170, 380);
         _fullValue = MakeCardValue(fullCard, "--");
 
-        var designCard = MakeCard("DESIGN", 270, 380);
+        var designCard = MakeCard("DESIGN", 310, 380);
         _designValue = MakeCardValue(designCard, "--");
 
         var daemonCard = MakeCard("DAEMON", 30, 470);
@@ -108,8 +108,8 @@ public partial class Form1 : Form
         _runtimeValue = MakeCardSub(daemonCard, "");
 
         _installBtn = MakeButton("Install", 30, 550, Color.FromArgb(80, 200, 120));
-        _uninstallBtn = MakeButton("Uninstall", 155, 550, Color.FromArgb(220, 90, 90));
-        _daemonBtn = MakeButton("Daemon", 280, 550, Color.FromArgb(70, 110, 180));
+        _uninstallBtn = MakeButton("Uninstall", 170, 550, Color.FromArgb(220, 90, 90));
+        _daemonBtn = MakeButton("Daemon", 310, 550, Color.FromArgb(70, 110, 180));
 
         Controls.AddRange(new Control[]
         {
@@ -139,7 +139,7 @@ public partial class Form1 : Form
     {
         var card = new Panel
         {
-            Size = new Size(105, 75),
+            Size = new Size(130, 80),
             Location = new Point(x, y),
             BackColor = Color.FromArgb(26, 30, 36)
         };
@@ -160,10 +160,13 @@ public partial class Form1 : Form
         var v = new Label
         {
             Text = initial,
-            Font = new Font("Segoe UI", 14, FontStyle.Bold),
+            Font = new Font("Segoe UI", 13, FontStyle.Bold),
             ForeColor = Color.FromArgb(230, 235, 240),
-            AutoSize = true,
-            Location = new Point(12, 32)
+            AutoSize = false,
+            AutoEllipsis = true,
+            Size = new Size(106, 24),
+            TextAlign = ContentAlignment.MiddleLeft,
+            Location = new Point(12, 28)
         };
         card.Controls.Add(v);
         return v;
@@ -176,7 +179,10 @@ public partial class Form1 : Form
             Text = initial,
             Font = new Font("Segoe UI", 8),
             ForeColor = Color.FromArgb(150, 160, 170),
-            AutoSize = true,
+            AutoSize = false,
+            AutoEllipsis = true,
+            Size = new Size(106, 18),
+            TextAlign = ContentAlignment.MiddleLeft,
             Location = new Point(12, 54)
         };
         card.Controls.Add(v);
@@ -188,7 +194,7 @@ public partial class Form1 : Form
         var b = new Button
         {
             Text = text,
-            Size = new Size(110, 38),
+            Size = new Size(120, 38),
             Location = new Point(x, y),
             FlatStyle = FlatStyle.Flat,
             BackColor = accent,
