@@ -36,7 +36,14 @@ Source: "uninstall.ps1"; DestDir: "{app}"
 
 [Run]
 Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File {app}\postinstall.ps1"; StatusMsg: "Installing driver and registering scheduled task..."; Flags: runhidden waituntilterminated
-Filename: "{app}\BatteryCapApp.exe"; Description: "Launch Battery Charge Limiter"; Flags: nowait postinstall skipifsilent
+Filename: "{app}\BatteryCapApp.exe"; Description: "Launch Battery Charge Limiter"; Flags: nowait postinstall
+
+[Icons]
+Name: "{autoprograms}\Battery Charge Limiter"; Filename: "{app}\BatteryCapApp.exe"; IconFilename: "{app}\green.ico"; Comment: "Battery charge limiter dashboard"
+Name: "{autodesktop}\Battery Charge Limiter"; Filename: "{app}\BatteryCapApp.exe"; IconFilename: "{app}\green.ico"; Comment: "Battery charge limiter dashboard"; Tasks: desktopicon
+
+[Tasks]
+Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional icons:"; Flags: checkedonce
 
 [UninstallRun]
 Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File {app}\uninstall.ps1"; Flags: runhidden waituntilterminated; RunOnceId: "UninstallCleanup"
