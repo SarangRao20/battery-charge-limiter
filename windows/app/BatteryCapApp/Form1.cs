@@ -222,9 +222,7 @@ public partial class Form1 : Form
             }
             _ecValue.Text = ec;
 
-            bool daemonRunning = System.Diagnostics.Process.GetProcessesByName("powershell")
-                .Any(p => p.MainWindowTitle == "" ); // approximation
-            daemonRunning = File.Exists(DaemonPath) && DaemonAlive();
+            bool daemonRunning = File.Exists(DaemonPath) && DaemonAlive();
             _daemonValue.Text = daemonRunning ? "Running" : "Stopped";
             _daemonValue.ForeColor = daemonRunning ? Color.FromArgb(80, 200, 120) : Color.FromArgb(220, 120, 90);
             _daemonBtn.Text = daemonRunning ? "Stop" : "Start";
@@ -234,8 +232,22 @@ public partial class Form1 : Form
 
     private bool DaemonAlive()
     {
-        return System.Diagnostics.Process.GetProcessesByName("powershell")
-            .Any(p => { try { return p.StartInfo.FileName.Contains("daemon") || p.MainWindowTitle.Length == 0; } catch { return false; } });
+        try
+        {
+            var psi = new System.Diagnostics.ProcessStartInfo
+            {
+                FileName = "powershell.exe",
+                Arguments = "-NoProfile -Command \"[bool](Get-CimInstance Win32_Process -Filter \\\"Name='powershell.exe'\\\" | Where-Object { $_.CommandLine -like '*daemon.ps1*' })\"",
+                RedirectStandardOutput = true,
+                UseShellExecute = false,
+                CreateNoWindow = true
+            };
+            var proc = System.Diagnostics.Process.Start(psi)!;
+            var line = proc.StandardOutput.ReadToEnd().Trim();
+            proc.WaitForExit();
+            return line.StartsWith("True");
+        }
+        catch { return false; }
     }
 
     private (int Charge, int Health, bool OnAc) GetBatteryInfo()
