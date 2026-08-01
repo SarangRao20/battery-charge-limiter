@@ -93,8 +93,9 @@ if (Start-DriverService "RwDrv") {
     # Install WinRing0 from vendored copy
     Copy-Item $ecPath "$dest\EC-Access-Tool.exe" -Force
     Copy-Item $winringPath "$dest\WinRing0x64.sys" -Force
-    & "$dest\EC-Access-Tool.exe" -install
-    Start-Sleep 2
+    sc.exe create WinRing0_1_2_0 type= kernel start= auto binPath= "$dest\WinRing0x64.sys" | Out-Null
+    sc.exe start WinRing0_1_2_0 | Out-Null
+    Start-Sleep 1
     if (-not (Start-DriverService "WinRing0_1_2_0")) {
         Write-Host " FAILED" -ForegroundColor Red
         Write-Host "WinRing0 service could not be started."
