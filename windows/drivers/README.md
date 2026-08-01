@@ -5,7 +5,7 @@ driver from a third-party server at install time.
 
 | File | Source | License | SHA256 |
 |------|--------|---------|--------|
-| `EC-Access-Tool.exe` | [shubhampaul/EC-Access-Tool](https://github.com/shubhampaul/EC-Access-Tool) (v1.0.0-beta, commit `27ab52e`) | GPLv3 | `be6af2801a46364b6adb547b57e90a73ff4770047a17c9eef477ccec8cb7f90f` |
+| `EC-Access-Tool.exe` | [shubhampaul/EC-Access-Tool](https://github.com/shubhampaul/EC-Access-Tool) (v1.0.0-beta, release asset) | GPLv3 | `504a58b1faba08b25a45d51de5996bf7cb31f461e28f1a270d2e53b1f3fda8ac` |
 | `WinRing0x64.sys` | [OpenLibSys](https://openlibsys.org/) (via CrystalDiskMark) | BSD-3-Clause | `11bd2c9f9e2397c9a16e0990e4ed2cf0679498fe0fd418a3dfdac60b5c160ee5` |
 
 ## RwDrv.sys

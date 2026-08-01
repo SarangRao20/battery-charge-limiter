@@ -16,7 +16,7 @@ $iconSrc    = "$PSScriptRoot\icons"
 $daemonPath = "$PSScriptRoot\daemon.ps1"
 
 # SHA256 of vendored files (see drivers/README.md)
-$ecHash     = "be6af2801a46364b6adb547b57e90a73ff4770047a17c9eef477ccec8cb7f90f"
+$ecHash     = "504a58b1faba08b25a45d51de5996bf7cb31f461e28f1a270d2e53b1f3fda8ac"
 $winringHash = "11bd2c9f9e2397c9a16e0990e4ed2cf0679498fe0fd418a3dfdac60b5c160ee5"
 
 function Verify-FileHash($path, $expected) {
