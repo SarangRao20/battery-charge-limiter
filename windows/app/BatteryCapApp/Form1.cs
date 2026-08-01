@@ -15,8 +15,6 @@ public partial class Form1 : Form
     private readonly Label _runtimeValue;
     private readonly Label _daemonValue;
     private readonly Label _statusPill;
-    private readonly Button _installBtn;
-    private readonly Button _uninstallBtn;
     private readonly Button _daemonBtn;
 
     private const string EcTool = @"C:\EC-Tool\EC-Access-Tool.exe";
@@ -107,19 +105,15 @@ public partial class Form1 : Form
         _daemonValue = MakeCardValue(daemonCard, "--");
         _runtimeValue = MakeCardSub(daemonCard, "");
 
-        _installBtn = MakeButton("Install", 30, 550, Color.FromArgb(80, 200, 120));
-        _uninstallBtn = MakeButton("Uninstall", 170, 550, Color.FromArgb(220, 90, 90));
-        _daemonBtn = MakeButton("Daemon", 310, 550, Color.FromArgb(70, 110, 180));
+        _daemonBtn = MakeButton("Daemon", 170, 550, Color.FromArgb(70, 110, 180));
 
         Controls.AddRange(new Control[]
         {
             header, _statusPill, sub, _batteryPct, batterySub, _ring,
             healthCard, ecCard, acCard, cycleCard, fullCard, designCard, daemonCard,
-            _installBtn, _uninstallBtn, _daemonBtn
+            _daemonBtn
         });
 
-        _installBtn.Click += (_, _) => RunElevated("-Install");
-        _uninstallBtn.Click += (_, _) => RunElevated("-Uninstall");
         _daemonBtn.Click += (_, _) => ToggleDaemon();
 
         _timer = new System.Windows.Forms.Timer { Interval = 3000 };
@@ -342,22 +336,6 @@ public partial class Form1 : Form
         }
         catch { }
         return (charge, health, cycles, fullWh, designWh, runtimeMin, onAc);
-    }
-
-    private void RunElevated(string arg)
-    {
-        var exe = Environment.ProcessPath!;
-        try
-        {
-            System.Diagnostics.Process.Start(new System.Diagnostics.ProcessStartInfo
-            {
-                FileName = exe,
-                Arguments = arg,
-                Verb = "runas",
-                UseShellExecute = true
-            });
-        }
-        catch { }
     }
 
     private void ToggleDaemon()
