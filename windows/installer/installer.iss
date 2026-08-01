@@ -18,7 +18,7 @@ SolidCompression=yes
 WizardStyle=modern
 WizardImageFile=theme\wizard.png
 WizardSmallImageFile=theme\small.png
-UninstallDisplayIcon={app}\green.ico
+UninstallDisplayIcon={app}\app.ico
 ArchitecturesInstallIn64BitMode=x64compatible
 SetupIconFile=..\icons\app.ico
 
@@ -39,8 +39,8 @@ Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -Fil
 Filename: "{app}\BatteryCapApp.exe"; Description: "Launch Battery Charge Limiter"; Flags: nowait postinstall
 
 [Icons]
-Name: "{autoprograms}\Battery Charge Limiter"; Filename: "{app}\BatteryCapApp.exe"; IconFilename: "{app}\green.ico"; Comment: "Battery charge limiter dashboard"
-Name: "{autodesktop}\Battery Charge Limiter"; Filename: "{app}\BatteryCapApp.exe"; IconFilename: "{app}\green.ico"; Comment: "Battery charge limiter dashboard"; Tasks: desktopicon
+Name: "{autoprograms}\Battery Charge Limiter"; Filename: "{app}\BatteryCapApp.exe"; IconFilename: "{app}\app.ico"; Comment: "Battery charge limiter dashboard"
+Name: "{autodesktop}\Battery Charge Limiter"; Filename: "{app}\BatteryCapApp.exe"; IconFilename: "{app}\app.ico"; Comment: "Battery charge limiter dashboard"; Tasks: desktopicon
 
 [Tasks]
 Name: "desktopicon"; Description: "Create a desktop shortcut"; GroupDescription: "Additional icons:"; Flags: checkedonce
