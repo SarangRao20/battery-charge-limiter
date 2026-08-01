@@ -42,7 +42,7 @@ Daemon monitors battery % every N seconds
 
 | Platform | Guide | One-click setup |
 |----------|-------|----------------|
-| **Windows** | [windows/GUIDE.md](windows/GUIDE.md) | `dist\BatteryCapSetup.exe` (double-click installer) |
+| **Windows** | [windows/GUIDE.md](windows/GUIDE.md) | `dist\BatteryCapSetup.exe` (GUI installer + app) |
 | **Arch Linux** | [arch/GUIDE.md](arch/GUIDE.md) | `sudo bash arch/setup.sh` |
 | **Arch (AUR)** | [arch/GUIDE.md](arch/GUIDE.md) | `yay -S battery-charge-limiter` |
 
@@ -60,7 +60,9 @@ Battery-Charge-Limiter/
 │   ├── installer/     # Inno Setup source for BatteryCapSetup.exe
 │   │   ├── installer.iss      # Compiler script (ISCC)
 │   │   ├── postinstall.ps1    # Driver + task + daemon launch
-│   │   └── uninstall.ps1      # Cleanup (driver, task, daemon)
+│   │   ├── uninstall.ps1      # Cleanup (driver, task, daemon)
+│   │   └── theme/             # Custom installer banner artwork
+│   ├── app/           # BatteryCapApp.exe — dark GUI dashboard (C# WinForms)
 │   ├── drivers/       # Vendored EC-Access-Tool + WinRing0 (SHA256 pinned)
 │   └── GUIDE.md       # Step-by-step tutorial
 │
@@ -134,6 +136,10 @@ WinRing0 requires Secure Boot disabled or signed driver. RW-Everything's RwDrv.s
 | Windows — Tray States | Arch — Daemon Logs |
 |---|---|
 | ![Tray icons](docs/screenshots/02-tray-icons.png) | ![Arch daemon logs](docs/screenshots/arch-daemon-logs.png) |
+
+| Windows — GUI App |
+|---|
+| ![BatteryCapApp dashboard](docs/screenshots/app-gui.png) |
 
 ---
 

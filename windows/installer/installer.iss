@@ -1,5 +1,5 @@
 #define MyAppName "Battery Charge Limiter"
-#define MyAppVersion "1.1.0"
+#define MyAppVersion "1.2.0"
 #define MyAppPublisher "SarangRao20"
 
 [Setup]
@@ -16,10 +16,17 @@ OutputDir=..\..\dist
 Compression=lzma2
 SolidCompression=yes
 WizardStyle=modern
+WizardImageFile=theme\wizard.png
+WizardSmallImageFile=theme\small.png
 UninstallDisplayIcon={app}\green.ico
 ArchitecturesInstallIn64BitMode=x64compatible
+SetupIconFile=..\icons\green.ico
+
+[Languages]
+Name: "english"; MessagesFile: "compiler:Default.isl"
 
 [Files]
+Source: "..\app\publish\BatteryCapApp.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "..\drivers\EC-Access-Tool.exe"; DestDir: "{app}"
 Source: "..\drivers\WinRing0x64.sys"; DestDir: "{app}"
 Source: "..\daemon.ps1"; DestDir: "{app}"
@@ -28,7 +35,24 @@ Source: "postinstall.ps1"; DestDir: "{app}"
 Source: "uninstall.ps1"; DestDir: "{app}"
 
 [Run]
-Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\postinstall.ps1"""; StatusMsg: "Installing driver and registering scheduled task..."; Flags: runhidden waituntilterminated
+Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File {app}\postinstall.ps1"; StatusMsg: "Installing driver and registering scheduled task..."; Flags: runhidden waituntilterminated
+Filename: "{app}\BatteryCapApp.exe"; Description: "Launch Battery Charge Limiter"; Flags: nowait postinstall skipifsilent
 
 [UninstallRun]
-Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File ""{app}\uninstall.ps1"""; Flags: runhidden waituntilterminated; RunOnceId: "UninstallCleanup"
+Filename: "powershell.exe"; Parameters: "-NoProfile -ExecutionPolicy Bypass -File {app}\uninstall.ps1"; Flags: runhidden waituntilterminated; RunOnceId: "UninstallCleanup"
+
+[Code]
+function IsDotNet8Installed(): Boolean;
+begin
+  Result := DirExists(ExpandConstant('{autopf64}\dotnet\shared\Microsoft.WindowsDesktop.App')) or
+            DirExists(ExpandConstant('{autopf}\dotnet\shared\Microsoft.WindowsDesktop.App'));
+end;
+
+procedure InitializeWizard();
+begin
+  if not IsDotNet8Installed() then begin
+    MsgBox('BatteryCapApp requires .NET 8 Desktop Runtime, which was not found.' + #13#10 +
+           'Please install it from: https://dotnet.microsoft.com/download/dotnet/8.0' + #13#10 + #13#10 +
+           'The core battery limiter (daemon) will still work without it.', mbInformation, MB_OK);
+  end;
+end;
