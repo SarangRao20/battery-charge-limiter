@@ -32,6 +32,8 @@ Daemon monitors battery % every N seconds
 
 **The EC reset problem:** HP Pavilion firmware resets register 0x76 every few seconds. The daemon re-writes continuously to maintain the state.
 
+**Runs automatically:** `setup.ps1` registers a scheduled task (`Battery80Cap`) that launches the daemon at **logon** with hidden window + highest privileges. It survives reboots, works on battery power, and keeps running until you exit it from the tray menu.
+
 ---
 
 ## Quick Start

@@ -169,7 +169,7 @@ Don't want to remember to launch this every time you reboot? Good news.
 powershell -ExecutionPolicy Bypass -File windows\setup.ps1
 ```
 
-This creates a scheduled task called **Battery80Cap** that runs at startup (30-second delay) and on logon. Hidden window, highest privileges, all that jazz.
+This creates a scheduled task called **Battery80Cap** that runs at logon. Hidden window, highest privileges, all that jazz.
 
 ### Option B: Do it yourself
 
