@@ -107,7 +107,7 @@ if (Start-DriverService "RwDrv") {
 # 3. Copy files to C:\EC-Tool
 Write-Host "[3/5] Setting up C:\EC-Tool..." -NoNewline
 Copy-Item $ecPath "$dest\EC-Access-Tool.exe" -Force
-Copy-Item $winringPath "$dest\WinRing0x64.sys" -Force
+Copy-Item $winringPath "$dest\WinRing0x64.sys" -Force -ErrorAction SilentlyContinue
 if ($useRwDrv) { Copy-Item $rwdrvLocal "$dest\RwDrv.sys" -Force -ErrorAction SilentlyContinue }
 Copy-Item "$iconSrc\*.ico" "$dest\" -Force -ErrorAction SilentlyContinue
 Copy-Item $daemonPath "$dest\daemon.ps1" -Force
