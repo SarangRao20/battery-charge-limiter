@@ -49,18 +49,23 @@ $bypassed  = $false
 
 # === MENU EVENTS ===
 $itemStatus.add_Click({
-    $v = & $ecTool $driver -r $regAddr
-    $b = Get-WmiObject Win32_Battery
-    $val = $v.Trim()
-    $s = if ($val -eq "0xc5" -or $val -eq "0x45") { "INHIBITED" } else { "AUTO" }
-    $ac = if ([System.Windows.Forms.SystemInformation]::PowerStatus.PowerLineStatus -eq 1) { "Plugged" } else { "On Battery" }
-    $design = (Get-CimInstance Win32_PortableBattery -ErrorAction SilentlyContinue).DesignCapacity
-    $full = (Get-CimInstance -Namespace root/wmi -ClassName BatteryFullChargedCapacity -ErrorAction SilentlyContinue).FullChargedCapacity
-    $health = if ($design -and $full) { [math]::Round(($full / $design) * 100) } else { "?" }
-    [System.Windows.Forms.MessageBox]::Show(
-        "EC reg 0x$regAddr : $val  ($s)`nBattery  : $($b.EstimatedChargeRemaining)%`nHealth   : $health%  ($full/$design mWh)`nStatus   : $($b.BatteryStatus)`nAC       : $ac`nRuntime  : $($b.EstimatedRunTime) min",
-        "Battery Cap"
-    )
+    $app = "C:\EC-Tool\BatteryCapApp.exe"
+    if (Test-Path $app) {
+        Start-Process $app
+    } else {
+        $v = & $ecTool $driver -r $regAddr
+        $b = Get-WmiObject Win32_Battery
+        $val = $v.Trim()
+        $s = if ($val -eq "0xc5" -or $val -eq "0x45") { "INHIBITED" } else { "AUTO" }
+        $ac = if ([System.Windows.Forms.SystemInformation]::PowerStatus.PowerLineStatus -eq 1) { "Plugged" } else { "On Battery" }
+        $design = (Get-CimInstance Win32_PortableBattery -ErrorAction SilentlyContinue).DesignCapacity
+        $full = (Get-CimInstance -Namespace root/wmi -ClassName BatteryFullChargedCapacity -ErrorAction SilentlyContinue).FullChargedCapacity
+        $health = if ($design -and $full) { [math]::Round(($full / $design) * 100) } else { "?" }
+        [System.Windows.Forms.MessageBox]::Show(
+            "EC reg 0x$regAddr : $val  ($s)`nBattery  : $($b.EstimatedChargeRemaining)%`nHealth   : $health%  ($full/$design mWh)`nStatus   : $($b.BatteryStatus)`nAC       : $ac`nRuntime  : $($b.EstimatedRunTime) min",
+            "Battery Cap"
+        )
+    }
 })
 
 $itemBypass.add_Click({
