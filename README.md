@@ -40,7 +40,7 @@ Daemon monitors battery % every N seconds
 
 | Platform | Guide | One-click setup |
 |----------|-------|----------------|
-| **Windows** | [windows/GUIDE.md](windows/GUIDE.md) | `windows\setup.bat` (double-click) |
+| **Windows** | [windows/GUIDE.md](windows/GUIDE.md) | `dist\BatteryCapSetup.exe` (double-click installer) |
 | **Arch Linux** | [arch/GUIDE.md](arch/GUIDE.md) | `sudo bash arch/setup.sh` |
 | **Arch (AUR)** | [arch/GUIDE.md](arch/GUIDE.md) | `yay -S battery-charge-limiter` |
 
@@ -55,8 +55,15 @@ Battery-Charge-Limiter/
 │   ├── setup.ps1      # One-click installer (driver, service, task)
 │   ├── setup.bat      # Double-click launcher for setup.ps1
 │   ├── detect-ec.ps1  # EC register scanner
+│   ├── installer/     # Inno Setup source for BatteryCapSetup.exe
+│   │   ├── installer.iss      # Compiler script (ISCC)
+│   │   ├── postinstall.ps1    # Driver + task + daemon launch
+│   │   └── uninstall.ps1      # Cleanup (driver, task, daemon)
 │   ├── drivers/       # Vendored EC-Access-Tool + WinRing0 (SHA256 pinned)
 │   └── GUIDE.md       # Step-by-step tutorial
+│
+├── dist/              # Prebuilt installers
+│   └── BatteryCapSetup.exe    # Windows double-click installer
 │
 ├── arch/              # Arch Linux: Python daemon, systemd service
 │   ├── battery-charge-limiter         # Python daemon (60s poll, headless)
