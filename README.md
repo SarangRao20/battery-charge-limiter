@@ -1,4 +1,6 @@
-# Battery Charge Limiter
+# HP Pavilion Battery Charge Limiter
+
+Reverse engineered battery charge limiting for unsupported HP Pavilion laptops on Windows and Arch Linux.
 
 > **Stop overcharging your laptop battery at the hardware/EC level.**
 > Supports Windows and Arch Linux.
@@ -11,7 +13,7 @@
 
 ## The Problem
 
-Lithium-ion batteries degrade fastest at 100% charge. Premium laptops have "Battery Health Manager" — consumer models (HP Pavilion, etc.) don't, even though the Embedded Controller hardware supports it.
+Many consumer HP laptops (including the Pavilion series) do not expose battery charge limit controls, even though the underlying Embedded Controller appears to support the functionality.
 
 This project **re-enables that hidden hardware feature** by writing to the EC register that controls charging.
 
@@ -135,10 +137,33 @@ WinRing0 requires Secure Boot disabled or signed driver. RW-Everything's RwDrv.s
 
 ---
 
+## Tested Hardware
+
+The implementation has been verified on:
+
+- HP Pavilion 15-eg3081TU
+- Windows 11
+- Arch Linux
+
+Both implementations control the same battery charging behaviour using platform-specific interfaces.
+
+Support for additional models is community-driven.
+
+
+## Contributing
+
+Contributions, bug reports and PRs are always welcome, especially for adding support for new laptop models.
+
 ## License
 
 MIT
 
 ## AI Disclosure
 
-Parts of the code (daemon scripts, installers, PKGBUILD) and some documentation were written with assistance from AI. The core reverse engineering work (DSDT analysis, EC register discovery, ACPI method identification) was done manually. No AI was used to generate or reverse-engineer the DSDT or EC register logic.
+## AI Disclosure
+
+Parts of the implementation (daemon scripts, installers, PKGBUILD) and portions of the documentation were developed with AI assistance.
+
+The reverse engineering itself, including DSDT analysis, EC register discovery, firmware experimentation, ACPI method identification, validation, and testing, was performed manually.
+
+AI was used as a programming assistant, not as a source of the reverse engineering results.
