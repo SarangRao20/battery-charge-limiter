@@ -158,7 +158,6 @@ Contributions, bug reports and PRs are always welcome, especially for adding sup
 
 MIT
 
-## AI Disclosure
 
 ## AI Disclosure
 
