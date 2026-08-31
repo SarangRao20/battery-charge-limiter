@@ -1,2 +1,5 @@
 # User data
 *.log
+
+# Local AUR working tree (nested repo) — not part of the GitHub project
+/battery-charge-limiter/

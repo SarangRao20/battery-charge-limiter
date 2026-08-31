@@ -88,6 +88,8 @@ cp "$SCRIPT_DIR/bat-inhibit" /usr/bin/bat-inhibit
 chmod +x /usr/bin/bat-inhibit
 cp "$SCRIPT_DIR/bat-auto" /usr/bin/bat-auto
 chmod +x /usr/bin/bat-auto
+cp "$SCRIPT_DIR/bat-bypass" /usr/bin/bat-bypass
+chmod +x /usr/bin/bat-bypass
 ok "Daemon + bat-* tools installed"
 
 # 5. Install & enable systemd service
@@ -105,6 +107,7 @@ echo "  Commands:"
 echo "    bat-status     → Battery level, health, power, cycles"
 echo "    bat-inhibit    → Manually stop charging"
 echo "    bat-auto       → Manually resume charging"
+echo "    bat-bypass     → Toggle bypass (charge to 100%, resets on reboot)"
 echo ""
 echo "  Daemon management:"
 echo "    systemctl status battery-charge-limiter"

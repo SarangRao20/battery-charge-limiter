@@ -39,7 +39,9 @@ stop=$(awk -F= '/^STOP_THRESHOLD/{gsub(/ /,""); print $2}' /etc/battery-charge-l
 start=${start:-75}
 stop=${stop:-80}
 
-if systemctl is-active --quiet battery-charge-limiter 2>/dev/null; then
+if [[ -f /run/battery-charge-limiter/bypass ]]; then
+    printf "  %-10s : BYPASS (charging to 100%%)\n" "Mode"
+elif systemctl is-active --quiet battery-charge-limiter 2>/dev/null; then
     if [[ "$status" == "Charging" ]]; then
         printf "  %-10s : charging (%s-%s%% window)\n" "Mode" "$start" "$stop"
     else

@@ -17,6 +17,7 @@ DEFAULTS = {
 
 WMI_INHIBIT = r"\_SB.WMID.SBCO BUFQ{0x00, 0x05, 0x00, 0x00}"
 WMI_AUTO = r"\_SB.WMID.SBCC BUFQ{0x00, 0x00, 0x00, 0x00}"
+BYPASS_FLAG = "/run/battery-charge-limiter/bypass"
 
 
 def load_config():
@@ -91,6 +92,7 @@ def main():
 
     print(f"Battery charge limiter started: {START_THRESHOLD}%-{STOP_THRESHOLD}%", flush=True)
     inhibited = False
+    bypassed = False
 
     while True:
         pct = read_battery_pct()
@@ -101,6 +103,22 @@ def main():
             continue
 
         on_ac = status in ("Charging", "Full", "Not charging")
+        is_bypassed = os.path.exists(BYPASS_FLAG)
+
+        if is_bypassed and not bypassed:
+            print("Bypass enabled — limiter paused", flush=True)
+            if inhibited:
+                set_charge_mode(False)
+                inhibited = False
+            bypassed = True
+
+        elif not is_bypassed and bypassed:
+            print("Bypass disabled — limiter active", flush=True)
+            bypassed = False
+
+        if bypassed:
+            time.sleep(POLL_INTERVAL)
+            continue
 
         if on_ac and not inhibited and pct >= STOP_THRESHOLD:
             print(f"Battery {pct}% >= {STOP_THRESHOLD}% - inhibiting charge", flush=True)
@@ -108,6 +126,10 @@ def main():
                 inhibited = True
             else:
                 print("Failed to inhibit charge", flush=True)
+
+        elif on_ac and inhibited and status == "Charging":
+            print(f"Battery {pct}% inhibited but still charging - re-inhibiting", flush=True)
+            set_charge_mode(True)
 
         elif inhibited and pct <= START_THRESHOLD:
             print(f"Battery {pct}% <= {START_THRESHOLD}% - resuming auto charge", flush=True)

@@ -1,0 +1,24 @@
+#!/usr/bin/env bash
+# Toggle bypass mode: allows battery to charge to 100% (limiter paused).
+# Resets on reboot. Requires root.
+set -euo pipefail
+
+BYPASS_DIR="/run/battery-charge-limiter"
+BYPASS_FLAG="$BYPASS_DIR/bypass"
+ACPI_CALL="/proc/acpi/call"
+WMI_AUTO='\_SB.WMID.SBCC BUFQ{0x00, 0x00, 0x00, 0x00}'
+
+if [[ $EUID -ne 0 ]]; then
+    echo "Error: must run as root (sudo bat-bypass)" >&2
+    exit 1
+fi
+
+if [[ -f "$BYPASS_FLAG" ]]; then
+    rm -f "$BYPASS_FLAG"
+    echo "Bypass OFF — limiter active again"
+else
+    mkdir -p "$BYPASS_DIR"
+    touch "$BYPASS_FLAG"
+    echo "$WMI_AUTO" | tee "$ACPI_CALL" >/dev/null 2>&1 || true
+    echo "Bypass ON — charging to 100% (resets on reboot)"
+fi
