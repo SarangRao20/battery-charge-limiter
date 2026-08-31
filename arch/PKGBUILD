@@ -13,7 +13,7 @@ conflicts=()
 provides=("${pkgname}")
 source=("${pkgname}-${pkgver}.tar.gz::https://github.com/SarangRao20/battery-charge-limiter/releases/download/v${pkgver}/${pkgname}-${pkgver}.tar.gz")
 install=battery-charge-limiter.install
-sha256sums=('f3cd2a5f48bf3bb58019fbec709eeff39d93eb16bfb7fdf3673ec82f6317775e')
+sha256sums=('7bcfbfdcd6c76fc5f86685b3cafb59fb27edb550ccf4fd92a3bd481284e39853')
 
 package() {
   cd "${srcdir}/${pkgname}-${pkgver}"
