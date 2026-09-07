@@ -7,6 +7,7 @@
 | Model | Register | AUTO | INHIBIT | Notes | Source |
 |-------|----------|------|---------|-------|--------|
 | Pavilion 15-eg3xxx | 0x76 | 0x40 | 0x45 | Volatile (resets in seconds) | Confirmed |
+| Pavilion bc014nl | 0x76 (BDVO) | 0x40 | 0x45 | Register itself is volatile via raw EC write, BUT stable when set via the WMI method (SBCC/SBCO) — the ACPI method includes a confirmation handshake (polls bit 0x80) that the raw register write bypasses. No re-write needed when using WMI. | Confirmed |
 | EliteBook 840 G6+ | 0xD7 | 0x00 | 0x02 | Stable | Report |
 | EliteBook 845 G8 | 0x69 | 0x00 | 0x01 | May need bit 0 toggle | Report |
 | ProBook 450 G8 | 0xD7 | 0x00 | 0x02 | Same as EliteBook 840 | Report |
